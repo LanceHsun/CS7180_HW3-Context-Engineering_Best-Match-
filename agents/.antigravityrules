@@ -1,0 +1,62 @@
+# BestMatch Project Rules
+
+## 1. Project Context
+- **Name:** BestMatch (Job Matching Dashboard)
+- **Tech Stack:** 
+  - **Frontend:** Next.js 14 (App Router), Tailwind CSS v3, Shadcn UI, Framer Motion.
+  - **Backend:** FastAPI (Python 3.11+), **Pydantic v2** for schema validation, Gemini 1.5 Pro API.
+  - **Services:** Apify (Job Scraping), Resend/SendGrid (Email Delivery), Supabase (Auth & DB).
+- **Architecture:**
+  - `/app`: Next.js App Router (Pages & Layouts). Use Server Components by default.
+  - `/components/ui`: Shadcn UI base components.
+  - `/components/features`: Feature-specific business logic components.
+  - `/lib`: Shared utilities, API clients, and constants.
+  - `/api/models`: Pydantic models for request/response validation.
+- **Naming Conventions:**
+  - **Files:** `kebab-case.tsx` for components, `camelCase.ts` for libs.
+  - **Components:** `PascalCase` for React components.
+  - **Variables/Functions:** `camelCase`.
+- **Testing:**
+  - **Unit:** Vitest for component logic. **Goal:** >80% coverage for business logic and feature components.
+  - **E2E:** Playwright for critical user flows (Sign-in, Upload).
+
+## 2. PRD & Design References
+- **PRD:** Refer to the local file: `agents/Product Requirements Document_ BestMatch.docx`.
+- **Mockups:** Refer to `agents/prototype_bestmatch.jsx` for the functional design source of truth.
+- **Key UI Components:**
+  - `ScanLine`: Visual feedback during resume parsing.
+  - `ScoreBadge`: Color-coded match scores (Green >90%, Blue 80-90%, Orange <80%).
+  - `MagicLinkUI`: Focused inbox check state.
+- **Critical User Flows:**
+  1. **Onboarding:** Drag-and-drop PDF -> AI Parsing -> Review Extraction -> Magic Link Sign-in.
+  2. **Dashboard:** Profile update -> Setting Preferences -> Reviewing Match History.
+- **Critical Data Flow:**
+  - **Signup/Onboarding:** User Input -> PDF Upload -> FastAPI Extraction -> Pydantic Validation -> Supabase DB Storage.
+  - **Matching Logic:** Only jobs with a **Match Score > 70%** should be delivered to the user.
+
+## 3. Scrum & Workflow Instructions
+- **Branching Strategy:** `feature/[issue-id]-[slug]` (e.g., `feature/10-onboarding-ui`).
+- **Commit Messages:** Follow Conventional Commits: `feat: #[issue-id] description` or `fix: #[issue-id] description`.
+- **GitHub Issues:** Every feature must correspond to an issue with:
+  - Title & Labels (Priority/Type).
+  - Clear **Acceptance Criteria (AC)** checklist.
+  - Milestone assignment (Sprint 1/2).
+- **Referencing:** Annotate complex logic with `@issue [id]` in comments.
+- **PR Workflow:** Every Pull Request must be linked to a GitHub Issue (use "Closes #[id]" in PR description).
+
+## 4. Implementation Do's and Don'ts
+- **DO:**
+  - Prioritize Accessibility (ARIA labels on inputs, high contrast color tokens).
+  - Use `Lucide-React` for icons to maintain consistent weight.
+  - Implement environment variable validation for API keys.
+  - Use `framer-motion` for all modal and toast transitions.
+- **DON'T:**
+  - **No Auto-Apply:** Strictly exclude automated job applications; the user must maintain control.
+  - **No Resume Rewriting:** Strictly out of scope.
+  - **No Custom CSS:** Strictly use Tailwind classes or CSS variables in `globals.css`.
+  - **No Password Auth:** Strictly use Magic Links for security and UX.
+  - **No Unsafe Inputs:** Use **Zod** for schema validation on all Frontend API boundaries and **Pydantic** for Backend models.
+
+## 5. Security & Accessibility
+- **Security:** Sanitize all AI-extracted text before rendering. Use Supabase RLS for match history.
+- **A11y:** Ensure the dashboard is navigable via keyboard. Maintain a minimum contrast ratio of 4.5:1.
