@@ -3,9 +3,13 @@
 ## 1. Project Context
 - **Name:** BestMatch (Job Matching Dashboard)
 - **Tech Stack:** 
-  - **Frontend:** Next.js 14 (App Router), Tailwind CSS v3, Shadcn UI, Framer Motion.
-  - **Backend:** FastAPI (Python 3.11+), **Pydantic v2** for schema validation, Gemini 1.5 Pro API.
-  - **Services:** Apify (Job Scraping), Resend/SendGrid (Email Delivery), Supabase (Auth & DB).
+  - **Frontend:** Next.js 15+ (App Router), React 19, Tailwind CSS v3, Shadcn UI, Framer Motion, ESLint, Prettier.
+  - **Backend:** FastAPI (Python 3.11+), **Pydantic v2** for schema validation, Gemini 1.5 Pro API, Ruff(Linter & Formatter).
+  - **Services:** 
+    - **Hosting/CI:** Vercel (Next.js optimized, Preview Deployments enabled).
+    - **Scraping:** Apify.
+    - **Email:** Resend/SendGrid.
+    - **Auth & DB:** Supabase.
 - **Architecture:**
   - `/app`: Next.js App Router (Pages & Layouts). Use Server Components by default.
   - `/components/ui`: Shadcn UI base components.
@@ -19,10 +23,9 @@
 - **Testing:**
   - **Unit:** Vitest for component logic. **Goal:** >80% coverage for business logic and feature components.
   - **E2E:** Playwright for critical user flows (Sign-in, Upload).
-
 ## 2. PRD & Design References
-- **PRD:** Refer to the local file: `agents/Product Requirements Document_ BestMatch.docx`.
-- **Mockups:** Refer to `agents/prototype_bestmatch.jsx` for the functional design source of truth.
+- **PRD:** Refer to the local file: `project_memory/Product Requirements Document_ BestMatch.md`.
+- **Mockups:** Refer to `project_memory/prototype_bestmatch.jsx` for the functional design source of truth.
 - **Key UI Components:**
   - `ScanLine`: Visual feedback during resume parsing.
   - `ScoreBadge`: Color-coded match scores (Green >90%, Blue 80-90%, Orange <80%).
@@ -43,6 +46,10 @@
   - Milestone assignment (Sprint 1/2).
 - **Referencing:** Annotate complex logic with `@issue [id]` in comments.
 - **PR Workflow:** Every Pull Request must be linked to a GitHub Issue (use "Closes #[id]" in PR description).
+- **Test-Driven Development (TDD):**
+  - Write tests before implementation.
+  - Ensure all tests pass before merging.
+  - Aim for >80% test coverage. 
 
 ## 4. Implementation Do's and Don'ts
 - **DO:**
@@ -50,6 +57,9 @@
   - Use `Lucide-React` for icons to maintain consistent weight.
   - Implement environment variable validation for API keys.
   - Use `framer-motion` for all modal and toast transitions.
+  - Ensure all files end with a newline and use 2-space indentation for TSX/JSON/JS files.
+  - Use the vercel env pull workflow for local development to ensure environment variable parity.
+  - Leverage Next.js Image component optimization (Vercel handles this natively).
 - **DON'T:**
   - **No Auto-Apply:** Strictly exclude automated job applications; the user must maintain control.
   - **No Resume Rewriting:** Strictly out of scope.
