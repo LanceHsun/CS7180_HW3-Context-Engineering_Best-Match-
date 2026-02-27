@@ -29,7 +29,7 @@
   - **Evaluation Suite:** Automated regression tests, ESLint/Prettier code quality metrics, and security scanning (e.g., CodeQL/Snyk).
   - **CI/CD:** Multi-stage pipeline (Lint -> Test -> Scan -> Deploy) with Vercel Preview Deployments and automated coverage reporting.
 ## 2. PRD & Design References
-- **PRD:** Refer to the local file: `../../artifacts/Product Requirements Document_ BestMatch.docx`.
+- **PRD:** Refer to the local file: `../../project_memory/docs/Product Requitements Document_BestMatch.md`.
 - **Project Memory:** Refer to `../../project_memory/memory.md` for session logs and architectural history. **Mandatory:** Update this file at the end of every task or session.
 - **Mockups:** Refer to `../../design/prototype_bestmatch.jsx` for the functional design source of truth.
 - **Key UI Components:**
