@@ -18,7 +18,7 @@
   - `/components/ui`: Shadcn UI base components.
   - `/components/features`: Feature-specific business logic components.
   - `/lib`: Shared utilities, API clients, and constants.
-  - `/api/models`: Pydantic models for request/response validation.
+  - `/lib/validations`: Zod schemas for full-stack request/response validation.
 - **Naming Conventions:**
   - **Files:** `kebab-case.tsx` for components, `camelCase.ts` for libs.
   - **Components:** `PascalCase` for React components.
@@ -40,7 +40,7 @@
   1. **Onboarding:** Drag-and-drop PDF -> AI Parsing -> Review Extraction -> Magic Link Sign-in.
   2. **Dashboard:** Profile update -> Setting Preferences -> Reviewing Match History.
 - **Critical Data Flow:**
-  - **Signup/Onboarding:** User Input -> PDF Upload -> FastAPI Extraction -> Pydantic Validation -> Supabase DB Storage.
+  - **Signup/Onboarding:** User Input -> PDF Upload -> AI Parsing (Gemini) -> Zod Validation -> Supabase DB Storage.
   - **Matching Logic:** Only jobs with a **Match Score > 70%** should be delivered to the user.
 
 ## 3. Scrum & Workflow Instructions
@@ -71,7 +71,7 @@
   - **No Resume Rewriting:** Strictly out of scope.
   - **No Custom CSS:** Strictly use Tailwind classes or CSS variables in `globals.css`.
   - **No Password Auth:** Strictly use Magic Links for security and UX.
-  - **No Unsafe Inputs:** Use **Zod** for schema validation on all Frontend API boundaries and **Pydantic** for Backend models.
+  - **No Unsafe Inputs:** Use **Zod** for schema validation across the entire stack (Frontend API boundaries, Backend logic, and DB interactions).
 
 ## 5. Security & Accessibility
 - **Security:** Sanitize all AI-extracted text before rendering. Use Supabase RLS for match history.
