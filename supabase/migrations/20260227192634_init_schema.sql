@@ -1,3 +1,8 @@
+-- Clean up previous detached tables from remote
+DROP TABLE IF EXISTS public.matches CASCADE;
+DROP TABLE IF EXISTS public.preferences CASCADE;
+DROP TABLE IF EXISTS public.profiles CASCADE;
+
 -- Create updated_at trigger function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
@@ -12,10 +17,8 @@ CREATE TABLE public.profiles (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE NOT NULL,
   target_role text NOT NULL,
-  resume_text text, -- Storing the raw/extracted resume for matching engine
   skills text[] DEFAULT '{}',
   experience_level text,
-  professional_tags text[] DEFAULT '{}', -- Added from PRD: "professional tags"
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
 );
@@ -48,8 +51,6 @@ CREATE TABLE public.matches (
   job_title text NOT NULL,
   company text NOT NULL,
   score integer CHECK (score >= 0 AND score <= 100),
-  match_reason text, -- Added from PRD: "understand why it was recommended"
-  status text DEFAULT 'pending' CHECK (status IN ('pending', 'applied', 'disliked')), -- Added from PRD: "Feedback Loop: dislike a match"
   apply_url text,
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
