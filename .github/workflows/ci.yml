@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm install --legacy-peer-deps
+      - run: rm package-lock.json && npm install --legacy-peer-deps
       - run: npm run lint
 
   test-unit:
@@ -26,7 +26,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm install --legacy-peer-deps
+      - run: rm package-lock.json && npm install --legacy-peer-deps
       - run: npm run test:coverage
 
   test-e2e:
@@ -37,7 +37,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - run: npm install --legacy-peer-deps
+      - run: rm package-lock.json && npm install --legacy-peer-deps
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
 
