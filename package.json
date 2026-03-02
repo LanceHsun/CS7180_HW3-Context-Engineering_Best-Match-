@@ -102,7 +102,6 @@
     "picomatch": "^2.3.1",
     "pify": "^2.3.0",
     "pirates": "^4.0.7",
-    "postcss": "^8.4.31",
     "postcss-import": "^15.1.0",
     "postcss-js": "^4.1.0",
     "postcss-load-config": "^6.0.1",
@@ -177,6 +176,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^25.3.2"
+    "@types/node": "^25.3.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "postcss": "^8.5.6",
+    "tailwindcss-animate": "^1.0.7"
   }
 }

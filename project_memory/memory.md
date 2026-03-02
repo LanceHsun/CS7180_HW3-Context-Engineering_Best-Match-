@@ -21,9 +21,18 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - **Rationale:** Provides a quick overview for new agents while preserving the full context of significant sessions.
 
 ## Project Roadmap Status
+
+### Phase 1: Foundational Setup (Issue #2)
 - [x] Initial Project Setup
 - [x] Core Rules Definition (`.antigravityrules`)
 - [x] Skill Documentation (`.agents/skills`)
 - [x] Memory Infrastructure Setup
-- [ ] Onboarding UI Implementation (Next Step)
+- [x] Core API Utilities (`lib/api`) & Supabase Config (Zod Error handling, API types)
+- [x] Zod Integration (Shared Schemas & Validation Middleware)
+- [x] API Skeleton Structure (`app/api/match/route.ts` & `/api/health`)
+- [x] Vitest API Testing (`/api/health` integration test)
+
+### Phase 2: Next.js Application Architecture
+- [ ] Initialize App Router Structure (`app/layout.tsx`, `page.tsx`, `tailwind.config.ts`)
+- [ ] Onboarding UI Implementation
 - [ ] Resume Parsing Backend Integration

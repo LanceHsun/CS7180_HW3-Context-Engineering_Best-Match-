@@ -14,7 +14,7 @@ const validateEnv = () => {
         return env;
     } catch (error) {
         if (error instanceof z.ZodError) {
-            console.error('❌ Invalid environment variables:', error.flatten().fieldErrors);
+            console.error('❌ Invalid environment variables:', z.flattenError ? z.flattenError(error).fieldErrors : error.issues);
             throw new Error('Environment variables validation failed');
         }
         throw error;
