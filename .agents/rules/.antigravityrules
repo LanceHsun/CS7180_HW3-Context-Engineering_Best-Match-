@@ -6,7 +6,7 @@
 ## 1. Project Context
 - **Name:** BestMatch (Job Matching Dashboard)
 - **Tech Stack:** 
-  - **Frontend:** Next.js 15+ (App Router), React 19, Tailwind CSS v3, Shadcn UI, Framer Motion, ESLint, Prettier.
+  - **Frontend:** Next.js 15+ (App Router), React 19, Tailwind CSS v4, Shadcn UI, Framer Motion, ESLint, Prettier.
   - **Backend:** Next.js API Routes (Node.js), Zod for schema validation, Gemini 1.5 Pro API, ESLint & Prettier (Linter & Formatter).
   - **Services:** 
     - **Hosting/CI:** Vercel (Next.js optimized, Preview Deployments enabled).
@@ -28,6 +28,7 @@
   - **Coverage Gate:** Mandatory >80% test coverage (Unit + Integration + E2E) enforced via CI.
   - **Evaluation Suite:** Automated regression tests, ESLint/Prettier code quality metrics, and security scanning (e.g., CodeQL/Snyk).
   - **CI/CD:** Multi-stage pipeline (Lint -> Test -> Scan -> Deploy) with Vercel Preview Deployments and automated coverage reporting.
+
 ## 2. PRD & Design References
 - **PRD:** Refer to the local file: `../../project_memory/docs/Product Requitements Document_BestMatch.md`.
 - **Project Memory:** Refer to `../../project_memory/memory.md` for session logs and architectural history. **Mandatory:** Update this file at the end of every task or session.
@@ -76,3 +77,22 @@
 ## 5. Security & Accessibility
 - **Security:** Sanitize all AI-extracted text before rendering. Use Supabase RLS for match history.
 - **A11y:** Ensure the dashboard is navigable via keyboard. Maintain a minimum contrast ratio of 4.5:1.
+
+## 6. Frontend Standards
+- **Component Structure:**
+  - `/components/ui`: Shadcn UI base components.
+  - `/components/features`: Feature-specific components.
+  - `/components/layout`: Shared layout components (Header, Sidebar).
+- **Styling:**
+  - Strictly use Tailwind v4 classes.
+  - Use CSS variables for theme-colors (e.g., `--primary`, `--secondary`).
+  - Follow Shadcn UI naming conventions for reusable components.
+- **State Management:**
+  - Use React Server Components (RSC) by default for data fetching.
+  - Use `useActionState` and `useOptimistic` for form interactions and state updates.
+  - Use client components only when necessary for interactivity (hooks, event listeners).
+- **Naming Conventions:**
+  - **Components:** `PascalCase.tsx`
+  - **Hooks:** `useCamelCase.ts`
+  - **Utilities:** `camelCase.ts`
+  - **Route Handlers:** `route.ts`
