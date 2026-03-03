@@ -45,11 +45,9 @@ describe("Health Check API", () => {
     const mockSupabase = {
       from: vi.fn().mockReturnThis(),
       select: vi.fn().mockReturnThis(),
-      limit: vi
-        .fn()
-        .mockResolvedValue({
-          error: { code: "08000", message: "Connection failed" },
-        }),
+      limit: vi.fn().mockResolvedValue({
+        error: { code: "08000", message: "Connection failed" },
+      }),
     };
     vi.mocked(createClient).mockResolvedValue(mockSupabase as any);
 
