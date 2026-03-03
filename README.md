@@ -1,1 +1,54 @@
-# CS7180_HW3-Context-Engineering_Best-Match-
+# BestMatch
+
+BestMatch is an AI-driven job matching dashboard that helps candidates find high-probability roles by automatically scanning job boards and tailoring recommendations based on their master resume.
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Installation
+
+1. Clone the repository:
+
+   ```bash
+   git clone <repository-url>
+   cd CS7180_HW3-Context-Engineering_Best-Match-
+   ```
+
+2. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+3. Setup environment variables:
+   ```bash
+   cp .env.example .env.local
+   ```
+   Fill in the required keys in `.env.local`.
+
+### Development
+
+Run the development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+### Code Quality
+
+- **Linting**: `npm run lint`
+- **Formatting**: `npm run format`
+- **Pre-commit Hooks**: Husky automatically runs `lint-staged` on every commit to ensure code quality.
+
+## Tech Stack
+
+- **Frontend**: Next.js 15 (App Router), Tailwind CSS v4, Shadcn UI
+- **Backend**: Next.js API Routes (Node.js)
+- **Database/Auth**: Supabase
+- **AI**: Gemini 1.5 Pro
