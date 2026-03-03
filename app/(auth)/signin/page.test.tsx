@@ -80,7 +80,7 @@ describe("SignInPage", () => {
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(screen.getByText("Invalid email")).toBeDefined();
+      expect(screen.getByText(/Invalid email/i)).toBeDefined();
     });
   });
 
