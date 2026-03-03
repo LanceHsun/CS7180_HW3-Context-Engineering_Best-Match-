@@ -4,3 +4,6 @@ node_modules
 .env
 remote_schema.sql
 conflicts.txt
+coverage/
+playwright-report/
+test-results/
