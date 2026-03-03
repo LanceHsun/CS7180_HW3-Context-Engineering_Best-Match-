@@ -27,10 +27,19 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - **Rationale:** Simplifies type sharing and deployment while leveraging modern React features (RSC, Actions).
 
 ## Project Roadmap Status
+
+### Phase 1: Foundational Setup (Issue #2 & #3)
 - [x] Initial Project Setup
 - [x] Core Rules Definition (`.antigravityrules`)
 - [x] Skill Documentation (`.agents/skills`)
 - [x] Memory Infrastructure Setup
 - [x] Frontend Project Scaffolding (Next.js 15 + Shadcn UI)
-- [ ] Onboarding UI Implementation (Next Step)
+- [x] Core API Utilities (`lib/api`) & Supabase Config (Zod Error handling, API types)
+- [x] Zod Integration (Shared Schemas & Validation Middleware)
+- [x] API Skeleton Structure (`app/api/match/route.ts` & `/api/health`)
+- [x] Vitest API Testing (`/api/health` integration test)
+
+### Phase 2: Next.js Application Architecture & Features
+- [/] Onboarding UI Implementation (In Progress)
 - [ ] Resume Parsing Backend Integration
+- [ ] Job Match Listing UI
