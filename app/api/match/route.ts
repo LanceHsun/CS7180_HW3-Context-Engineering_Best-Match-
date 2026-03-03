@@ -4,17 +4,17 @@ import { JobDescriptionSchema } from "../../../lib/validations/schemas";
 import { successResponse, errorResponse } from "../../../lib/api/response";
 
 export async function POST(req: NextRequest) {
-  const { data: jobDesc, error } = await validateRequest(
-    req,
-    JobDescriptionSchema
-  );
-
-  // Middle intercepts validation failures seamlessly using our standardized ZodError wrapper
-  if (error) {
-    return error;
-  }
-
   try {
+    const { data: jobDesc, error } = await validateRequest(
+      req,
+      JobDescriptionSchema
+    );
+
+    // Middle intercepts validation failures seamlessly using our standardized ZodError wrapper
+    if (error) {
+      return error;
+    }
+
     // Boilerplate for Gemini 1.5 Pro integration
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
     if (!GEMINI_API_KEY) {
