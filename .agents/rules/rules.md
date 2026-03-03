@@ -1,0 +1,82 @@
+---
+trigger: always_on
+---
+
+# BestMatch Project Rules
+
+## 0. Communication Protocol
+- ⭐ **Verification:** Any conversation you want to communicate with me, start it with a star emoji (⭐). This is unless you are generating some special formats. This confirms you have read and are adhering to these instructions.
+
+## 1. Project Context
+- **Name:** BestMatch (Job Matching Dashboard)
+- **Tech Stack:** 
+  - **Frontend:** Next.js 15+ (App Router), React 19, Tailwind CSS v3, Shadcn UI, Framer Motion, ESLint, Prettier.
+  - **Backend:** Next.js API Routes (Node.js), Zod for schema validation, Gemini 1.5 Pro API, ESLint & Prettier (Linter & Formatter).
+  - **Services:** 
+    - **Hosting/CI:** Vercel (Next.js optimized, Preview Deployments enabled).
+    - **Scraping:** Apify.
+    - **Email:** Resend/SendGrid.
+    - **Auth & DB:** Supabase.
+- **Architecture:**
+  - `/app`: Next.js App Router (Pages & Layouts). Use Server Components by default.
+  - `/components/ui`: Shadcn UI base components.
+  - `/components/features`: Feature-specific business logic components.
+  - `/lib`: Shared utilities, API clients, and constants.
+  - `/lib/validations`: Zod schemas for full-stack request/response validation.
+- **Naming Conventions:**
+  - **Files:** `kebab-case.tsx` for components, `camelCase.ts` for libs.
+  - **Components:** `PascalCase` for React components.
+  - **Variables/Functions:** `camelCase`.
+- **Testing & Quality:**
+  - **Frameworks:** Vitest for Unit/Integration, Playwright for E2E.
+  - **Coverage Gate:** Mandatory >80% test coverage (Unit + Integration + E2E) enforced via CI.
+  - **Evaluation Suite:** Automated regression tests, ESLint/Prettier code quality metrics, and security scanning (e.g., CodeQL/Snyk).
+  - **CI/CD:** Multi-stage pipeline (Lint -> Test -> Scan -> Deploy) with Vercel Preview Deployments and automated coverage reporting.
+## 2. PRD & Design References
+- **PRD:** Refer to the local file: `../../project_memory/docs/Product Requitements Document_BestMatch.md`.
+- **Project Memory:** Refer to `../../project_memory/memory.md` for session logs and architectural history. **Mandatory:** Update this file at the end of every task or session.
+- **Mockups:** Refer to `../../design/prototype_bestmatch.jsx` for the functional design source of truth.
+- **Key UI Components:**
+  - `ScanLine`: Visual feedback during resume parsing.
+  - `ScoreBadge`: Color-coded match scores (Green >90%, Blue 80-90%, Orange <80%).
+  - `MagicLinkUI`: Focused inbox check state.
+- **Critical User Flows:**
+  1. **Onboarding:** Drag-and-drop PDF -> AI Parsing -> Review Extraction -> Magic Link Sign-in.
+  2. **Dashboard:** Profile update -> Setting Preferences -> Reviewing Match History.
+- **Critical Data Flow:**
+  - **Signup/Onboarding:** User Input -> PDF Upload -> AI Parsing (Gemini) -> Zod Validation -> Supabase DB Storage.
+  - **Matching Logic:** Only jobs with a **Match Score > 70%** should be delivered to the user.
+
+## 3. Scrum & Workflow Instructions
+- **Branching Strategy:** `feature/[issue-id]-[slug]` (e.g., `feature/10-onboarding-ui`).
+- **Commit Messages:** Follow Conventional Commits: `feat: #[issue-id] description` or `fix: #[issue-id] description`.
+- **GitHub Issues:** Every feature must correspond to an issue with:
+  - Title & Labels (Priority/Type).
+  - Clear **Acceptance Criteria (AC)** checklist.
+  - Milestone assignment (Sprint 1/2).
+- **Referencing:** Annotate complex logic with `@issue [id]` in comments.
+- **PR Workflow:** Every Pull Request must be linked to a GitHub Issue (use "Closes #[id]" in PR description).
+- **Test-Driven Development (TDD):**
+  - Write tests before implementation.
+  - Ensure all tests pass before merging.
+  - Aim for >80% test coverage. 
+
+## 4. Implementation Do's and Don'ts
+- **DO:**
+  - Prioritize Accessibility (ARIA labels on inputs, high contrast color tokens).
+  - Use `Lucide-React` for icons to maintain consistent weight.
+  - Implement environment variable validation for API keys.
+  - Use `framer-motion` for all modal and toast transitions.
+  - Ensure all files end with a newline and use 2-space indentation for TSX/JSON/JS files.
+  - Use the vercel env pull workflow for local development to ensure environment variable parity.
+  - Leverage Next.js Image component optimization (Vercel handles this natively).
+- **DON'T:**
+  - **No Auto-Apply:** Strictly exclude automated job applications; the user must maintain control.
+  - **No Resume Rewriting:** Strictly out of scope.
+  - **No Custom CSS:** Strictly use Tailwind classes or CSS variables in `globals.css`.
+  - **No Password Auth:** Strictly use Magic Links for security and UX.
+  - **No Unsafe Inputs:** Use **Zod** for schema validation across the entire stack (Frontend API boundaries, Backend logic, and DB interactions).
+
+## 5. Security & Accessibility
+- **Security:** Sanitize all AI-extracted text before rendering. Use Supabase RLS for match history.
+- **A11y:** Ensure the dashboard is navigable via keyboard. Maintain a minimum contrast ratio of 4.5:1.
