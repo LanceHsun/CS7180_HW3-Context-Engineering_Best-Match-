@@ -16,9 +16,11 @@ vi.mock("@/lib/supabase/client", () => ({
 // Mock framer-motion to avoid animation issues in tests
 vi.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
+    div: ({ children, ...props }: any) =>
+      React.createElement("div", props, children),
   },
-  AnimatePresence: ({ children }: any) => <>{children}</>,
+  AnimatePresence: ({ children }: any) =>
+    React.createElement(React.Fragment, null, children),
 }));
 
 describe("SignInPage", () => {
@@ -31,6 +33,8 @@ describe("SignInPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set a real-looking URL so the component doesn't enter Demo Mode
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://test-project.supabase.co";
     (createClient as any).mockReturnValue(mockSupabase);
   });
 
