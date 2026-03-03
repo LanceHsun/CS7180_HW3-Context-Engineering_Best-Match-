@@ -10,6 +10,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-02-26 | `2d30b5fd` | Path Correction & Project Reorganization | Corrected `.antigravityrules` paths; Moved `.artifacts` content to `design/` and `project_memory/docs/`; Updated skill references. | ✅ Complete |
 | 2026-02-26 | `b491d688` | Git Push & Final Sync | Staged structural reorganization changes; Preparing for commit and push. | ✅ Complete |
 | 2026-03-02 | `bbbb4a0d` | Frontend Project Scaffolding | Initialized Next.js 15 + Shadcn UI; Setup routing, ESLint/Prettier/Husky; Updated standards. | ✅ Complete |
+| 2026-03-03 | `bbbb4a0d` | Next.js Version Alignment | Downgraded Next.js from 16 to 15 to align with `.antigravityrules`. | ✅ Complete |
 
 ## Architectural Decisions
 
