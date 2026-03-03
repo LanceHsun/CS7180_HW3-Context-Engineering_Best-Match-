@@ -9,6 +9,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-02-26 | `e3c45159` | Initial Skill Setup & Project Memory Infrastructure | Created 5 core SKILL.md files (UI, Parsing, Matching, Verification, Memory); Established project_memory structure. | ✅ Complete |
 | 2026-02-26 | `2d30b5fd` | Path Correction & Project Reorganization | Corrected `.antigravityrules` paths; Moved `.artifacts` content to `design/` and `project_memory/docs/`; Updated skill references. | ✅ Complete |
 | 2026-02-26 | `b491d688` | Git Push & Final Sync | Staged structural reorganization changes (moving artifacts to design/ and project_memory/); Preparing for commit and push. | ✅ Complete |
+| 2026-03-03 | `CURRENT` | Issue #22 Fixes & Next.js config sync | Fixed CodeQL DOM text interpreted as HTML by ignoring test outputs. Synced local `package.json` to feature branch. | ✅ Complete |
 
 ## Architectural Decisions
 
