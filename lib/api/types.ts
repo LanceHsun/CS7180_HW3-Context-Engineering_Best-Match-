@@ -1,11 +1,11 @@
 export interface ApiErrorDetail {
-    code: string;
-    message: string;
-    details?: unknown;
+  code: string;
+  message: string;
+  details?: unknown;
 }
 
 export interface ApiResponse<T = unknown> {
-    success: boolean;
-    data?: T;
-    error?: ApiErrorDetail;
+  success: boolean;
+  data?: T;
+  error?: ApiErrorDetail;
 }

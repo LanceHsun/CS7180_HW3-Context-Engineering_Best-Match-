@@ -8,7 +8,9 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | :--- | :--- | :--- | :--- | :--- |
 | 2026-02-26 | `e3c45159` | Initial Skill Setup & Project Memory Infrastructure | Created 5 core SKILL.md files (UI, Parsing, Matching, Verification, Memory); Established project_memory structure. | ✅ Complete |
 | 2026-02-26 | `2d30b5fd` | Path Correction & Project Reorganization | Corrected `.antigravityrules` paths; Moved `.artifacts` content to `design/` and `project_memory/docs/`; Updated skill references. | ✅ Complete |
-| 2026-02-26 | `b491d688` | Git Push & Final Sync | Staged structural reorganization changes (moving artifacts to design/ and project_memory/); Preparing for commit and push. | ✅ Complete |
+| 2026-02-26 | `b491d688` | Git Push & Final Sync | Staged structural reorganization changes; Preparing for commit and push. | ✅ Complete |
+| 2026-03-02 | `bbbb4a0d` | Frontend Project Scaffolding | Initialized Next.js 15 + Shadcn UI; Setup routing, ESLint/Prettier/Husky; Updated standards. | ✅ Complete |
+| 2026-03-03 | `bbbb4a0d` | Next.js Version Alignment | Downgraded Next.js from 16 to 15 to align with `.antigravityrules`. | ✅ Complete |
 
 ## Architectural Decisions
 
@@ -20,19 +22,24 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - **Decision:** Use a flat `memory.md` for high-level tracking and a `history/` folder for detailed logs.
 - **Rationale:** Provides a quick overview for new agents while preserving the full context of significant sessions.
 
+### 3. Frontend Architecture
+- **Decision:** Use Next.js 15 (App Router) for a unified full-stack environment.
+- **Rationale:** Simplifies type sharing and deployment while leveraging modern React features (RSC, Actions).
+
 ## Project Roadmap Status
 
-### Phase 1: Foundational Setup (Issue #2)
+### Phase 1: Foundational Setup (Issue #2 & #3)
 - [x] Initial Project Setup
 - [x] Core Rules Definition (`.antigravityrules`)
 - [x] Skill Documentation (`.agents/skills`)
 - [x] Memory Infrastructure Setup
+- [x] Frontend Project Scaffolding (Next.js 15 + Shadcn UI)
 - [x] Core API Utilities (`lib/api`) & Supabase Config (Zod Error handling, API types)
 - [x] Zod Integration (Shared Schemas & Validation Middleware)
 - [x] API Skeleton Structure (`app/api/match/route.ts` & `/api/health`)
 - [x] Vitest API Testing (`/api/health` integration test)
 
-### Phase 2: Next.js Application Architecture
-- [ ] Initialize App Router Structure (`app/layout.tsx`, `page.tsx`, `tailwind.config.ts`)
-- [ ] Onboarding UI Implementation
+### Phase 2: Next.js Application Architecture & Features
+- [/] Onboarding UI Implementation (In Progress)
 - [ ] Resume Parsing Backend Integration
+- [ ] Job Match Listing UI
