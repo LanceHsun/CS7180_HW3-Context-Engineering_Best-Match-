@@ -15,6 +15,7 @@ vi.mock("next/server", () => {
           getAll: mockGetAll,
         },
       })),
+      redirect: vi.fn(),
     },
     NextRequest: vi.fn(),
   };
@@ -109,5 +110,82 @@ describe("Supabase Middleware", () => {
       expect(NextResponse.next).toHaveBeenCalledWith({ request: mockRequest });
       // The response mock's set method would be called, but we can't easily assert on the exact instance's method here without deeper mocking.
     }
+  });
+});
+
+describe("Supabase Middleware Redirection", () => {
+  let mockRequest: any;
+  let mockGetUser: any;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+
+    mockRequest = {
+      cookies: {
+        getAll: vi.fn().mockReturnValue([]),
+        set: vi.fn(),
+      },
+      url: "http://localhost:3000/",
+    };
+
+    vi.mocked(NextResponse.redirect).mockImplementation(
+      (url: any) =>
+        ({
+          url,
+          status: 302,
+        }) as any
+    );
+  });
+
+  const setupAuth = (user: any) => {
+    mockGetUser = vi.fn().mockResolvedValue({ data: { user }, error: null });
+    vi.mocked(ssr.createServerClient).mockReturnValue({
+      auth: {
+        getUser: mockGetUser,
+      },
+    } as any);
+  };
+
+  it("redirects unauthenticated user from /dashboard to /signin", async () => {
+    setupAuth(null);
+    mockRequest.url = "http://localhost:3000/dashboard";
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).toHaveBeenCalled();
+    const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
+    expect(redirectUrl.toString()).toContain("/signin");
+  });
+
+  it("redirects authenticated user from /signin to /dashboard", async () => {
+    setupAuth({ id: "123" });
+    mockRequest.url = "http://localhost:3000/signin";
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).toHaveBeenCalled();
+    const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
+    expect(redirectUrl.toString()).toContain("/dashboard");
+  });
+
+  it("redirects authenticated user from /onboarding to /dashboard", async () => {
+    setupAuth({ id: "123" });
+    mockRequest.url = "http://localhost:3000/onboarding";
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).toHaveBeenCalled();
+    const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
+    expect(redirectUrl.toString()).toContain("/dashboard");
+  });
+
+  it("allows unauthenticated user to access home page", async () => {
+    setupAuth(null);
+    mockRequest.url = "http://localhost:3000/";
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).not.toHaveBeenCalled();
+    expect(NextResponse.next).toHaveBeenCalled();
   });
 });
