@@ -59,11 +59,27 @@ test.describe("Onboarding PDF Upload Flow", () => {
     await expect(page.getByText("TypeScript").first()).toBeVisible();
     await expect(page.getByText("Node.js").first()).toBeVisible();
 
+    // Mock the pending profile API so we don't hit the DB in E2E tests
+    let pendingApiCalled = false;
+    await page.route("/api/profile/pending", async (route) => {
+      pendingApiCalled = true;
+      const request = route.request();
+      expect(request.method()).toBe("POST");
+      const postData = JSON.parse(request.postData() || "{}");
+      expect(postData.email).toBe("test@example.com");
+      expect(postData.targetRole).toBe("Senior Software Engineer");
+
+      await route.fulfill({ json: { success: true } });
+    });
+
     // Fill the email and continue
     await page.fill("input#email", "test@example.com");
     await page
       .getByRole("button", { name: /Start Receiving Matches/i })
       .click();
+
+    // Verify the API was actually called
+    expect(pendingApiCalled).toBe(true);
 
     // Verify redirect to signin
     await expect(page).toHaveURL(/\/signin\?email=test%40example\.com/);

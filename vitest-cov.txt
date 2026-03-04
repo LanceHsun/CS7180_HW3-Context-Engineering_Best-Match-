@@ -1,0 +1,292 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/zhuanma/CS7180/Project2/CS7180_HW3-Context-Engineering_Best-Match-[39m
+      [2mCoverage enabled with [22m[33mv8[39m
+
+ [32mΓ£ô[39m lib/supabase/__tests__/client.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32mΓ£ô[39m lib/supabase/__tests__/server.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32mΓ£ô[39m lib/supabase/__tests__/middleware.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+npx : [90mstderr[2m | 
+app/auth/callback/__tests__/route.test.ts[2m > 
+[22m[2mAuth Callback Sync[2m > [22m[2mshould 
+continue gracefully if the sync upsert fails 
+(simulating DB error requested by user)
+At line:1 char:1
++ npx vitest run --coverage > vitest-coverage.txt 
+2>&1
++ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mst 
+   derr[2m...uested by user):String) [], RemoteExc  
+  eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39mFailed to sync pending profile to main 
+table: Error: DB Constraint Violated
+    at C:/zhuanma/CS7180/Project2/CS7180_HW3-Context-
+Engineering_Best-Match-/app/auth/callback/__tests__/r
+oute.test.ts:128:47
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/zhuanma/CS7180
+/Project2/CS7180_HW3-Context-Engineering_Best-Match-/
+[39mnode_modules/[4m@vitest[24m/runner/dist/index.
+js:1209:10[90m)[39m
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/zhuanma/CS7180/Proje
+ct2/CS7180_HW3-Context-Engineering_Best-Match-/[39mn
+ode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQa
+NT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/zhuanma/CS7180/Project2
+/CS7180_HW3-Context-Engineering_Best-Match-/[39mnode
+_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js
+:239:21[90m)[39m
+    at runTest [90m(file:///C:/zhuanma/CS7180/Projec
+t2/CS7180_HW3-Context-Engineering_Best-Match-/[39mno
+de_modules/[4m@vitest[24m/runner/dist/index.js:1653
+:12[90m)[39m
+
+ [32mΓ£ô[39m app/auth/callback/__tests__/route.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 82[2mms[22m[39m
+ [32mΓ£ô[39m lib/validations/__tests__/resume.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32mΓ£ô[39m lib/__tests__/response.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32mΓ£ô[39m app/api/__tests__/health.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+[90mstderr[2m | 
+lib/__tests__/errorHandler.test.ts[2m > 
+[22m[2mAPI Error Handler[2m > [22m[2mhandles 
+generic native errors
+[22m[39m[API Error]: Error: Database disconnected
+    at C:/zhuanma/CS7180/Project2/CS7180_HW3-Context-
+Engineering_Best-Match-/lib/__tests__/errorHandler.te
+st.ts:7:19
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/zhuanma/CS7180
+/Project2/CS7180_HW3-Context-Engineering_Best-Match-/
+[39mnode_modules/[4m@vitest[24m/runner/dist/index.
+js:1209:10[90m)[39m
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/zhuanma/CS7180/Proje
+ct2/CS7180_HW3-Context-Engineering_Best-Match-/[39mn
+ode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQa
+NT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/zhuanma/CS7180/Project2
+/CS7180_HW3-Context-Engineering_Best-Match-/[39mnode
+_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js
+:239:21[90m)[39m
+    at runTest [90m(file:///C:/zhuanma/CS7180/Projec
+t2/CS7180_HW3-Context-Engineering_Best-Match-/[39mno
+de_modules/[4m@vitest[24m/runner/dist/index.js:1653
+:12[90m)[39m
+
+[90mstderr[2m | 
+lib/__tests__/errorHandler.test.ts[2m > 
+[22m[2mAPI Error Handler[2m > [22m[2mhandles 
+structured ApiErrors
+[22m[39m[API Error]: ApiError: Access Denied
+    at C:/zhuanma/CS7180/Project2/CS7180_HW3-Context-
+Engineering_Best-Match-/lib/__tests__/errorHandler.te
+st.ts:17:22
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/zhuanma/CS7180
+/Project2/CS7180_HW3-Context-Engineering_Best-Match-/
+[39mnode_modules/[4m@vitest[24m/runner/dist/index.
+js:1209:10[90m)[39m
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/zhuanma/CS7180/Proje
+ct2/CS7180_HW3-Context-Engineering_Best-Match-/[39mn
+ode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQa
+NT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/zhuanma/CS7180/Project2
+/CS7180_HW3-Context-Engineering_Best-Match-/[39mnode
+_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js
+:239:21[90m)[39m
+    at runTest [90m(file:///C:/zhuanma/CS7180/Projec
+t2/CS7180_HW3-Context-Engineering_Best-Match-/[39mno
+de_modules/[4m@vitest[24m/runner/dist/index.js:1653
+:12[90m)[39m {
+  statusCode: [33m403[39m,
+  code: [32m'FORBIDDEN'[39m,
+  details: [90mundefined[39m
+}
+
+[90mstderr[2m | 
+lib/__tests__/errorHandler.test.ts[2m > 
+[22m[2mAPI Error Handler[2m > [22m[2mhandles 
+ZodErrors properly
+[22m[39m[API Error]: ZodError: [
+  {
+    "origin": "number",
+    "code": "too_small",
+    "minimum": 18,
+    "inclusive": true,
+    "path": [
+      "age"
+    ],
+    "message": "Too small: expected number to be 
+>=18"
+  }
+]
+    at C:/zhuanma/CS7180/Project2/CS7180_HW3-Context-
+Engineering_Best-Match-/lib/__tests__/errorHandler.te
+st.ts:30:14
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/zhuanma/CS7180
+/Project2/CS7180_HW3-Context-Engineering_Best-Match-/
+[39mnode_modules/[4m@vitest[24m/runner/dist/index.
+js:1209:10[90m)[39m
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/zhuanma/CS7180/Proje
+ct2/CS7180_HW3-Context-Engineering_Best-Match-/[39mn
+ode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQa
+NT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/zhuanma/CS7180/Project2
+/CS7180_HW3-Context-Engineering_Best-Match-/[39mnode
+_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js
+:239:21[90m)[39m
+    at runTest [90m(file:///C:/zhuanma/CS7180/Projec
+t2/CS7180_HW3-Context-Engineering_Best-Match-/[39mno
+de_modules/[4m@vitest[24m/runner/dist/index.js:1653
+:12[90m)[39m
+
+ [32mΓ£ô[39m lib/validations/__tests__/middleware.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32mΓ£ô[39m app/api/resume/parse/__tests__/route.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32mΓ£ô[39m app/api/__tests__/match.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32mΓ£ô[39m lib/__tests__/errorHandler.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+[90mstderr[2m | 
+app/api/profile/__tests__/route.test.ts[2m > 
+[22m[2mProfile APIs[2m > [22m[2mPOST 
+/api/profile/pending - Unauthenticated Drop-Box[2m 
+> [22m[2mshould return 500 if the pending_profiles 
+upsert fails
+[22m[39mSupabase pending_profile insert error: { 
+message: [32m'Database connection failed'[39m }
+
+ [32mΓ£ô[39m app/api/profile/__tests__/route.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+[90mstderr[2m | components/features/onboarding/__te
+sts__/extraction-results.test.tsx[2m > 
+[22m[2mExtractionResults Component[2m > 
+[22m[2mtriggers onComplete after clicking the 
+button
+[22m[39mAn update to ExtractionResults inside a 
+test was not wrapped in act(...).
+
+When testing, code that causes React state updates 
+should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the 
+user would see in the browser. Learn more at 
+https://react.dev/link/wrap-tests-with-act
+
+[90mstderr[2m | components/features/onboarding/__te
+sts__/extraction-results.test.tsx[2m > 
+[22m[2mExtractionResults Component[2m > 
+[22m[2msets the sb-mock-user cookie upon completion
+[22m[39mAn update to ExtractionResults inside a 
+test was not wrapped in act(...).
+
+When testing, code that causes React state updates 
+should be wrapped into act(...):
+
+act(() => {
+  /* fire events that update state */
+});
+/* assert on the output */
+
+This ensures that you're testing the behavior the 
+user would see in the browser. Learn more at 
+https://react.dev/link/wrap-tests-with-act
+
+ [32mΓ£ô[39m components/features/onboarding/__tests__/extraction-results.test.tsx [2m([22m[2m4 tests[22m[2m)[22m[32m 159[2mms[22m[39m
+ [32mΓ£ô[39m app/(auth)/signin/page.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[32m 201[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m54 passed[39m[22m[90m (54)[39m
+[2m   Start at [22m 15:44:33
+[2m   Duration [22m 2.39s[2m (transform 2.27s, setup 0ms, import 6.09s, tests 690ms, environment 1.94s)[22m
+
+[34m % [39m[2mCoverage report from [22m[33mv8[39m
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-------------------|---------|----------|---------|---------|-------------------
+All files          |   77.96 |    72.63 |      92 |   77.96 |                   
+ app/api/health    |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ app/api/match     |     100 |      100 |     100 |     100 |                   
+  route.ts         |     100 |      100 |     100 |     100 |                   
+ app/api/profile   |   58.33 |       50 |     100 |   58.33 |                   
+  route.ts         |   58.33 |       50 |     100 |   58.33 | ...70,80-85,93-94 
+ ...rofile/pending |   85.71 |       70 |     100 |   85.71 |                   
+  route.ts         |   85.71 |       70 |     100 |   85.71 | 33,64-65          
+ ...i/resume/parse |   80.55 |     62.5 |     100 |   80.55 |                   
+  route.ts         |   80.55 |     62.5 |     100 |   80.55 | ...76,109,123-124 
+ lib               |    8.33 |        0 |      50 |    8.33 |                   
+  ai.ts            |       0 |      100 |     100 |       0 | 4                 
+  env.ts           |       0 |        0 |       0 |       0 | 3-29              
+  utils.ts         |     100 |      100 |     100 |     100 |                   
+ lib/api           |     100 |    91.66 |     100 |     100 |                   
+  errorHandler.ts  |     100 |     87.5 |     100 |     100 | 44                
+  response.ts      |     100 |      100 |     100 |     100 |                   
+  types.ts         |       0 |        0 |       0 |       0 |                   
+ lib/hooks         |       0 |      100 |       0 |       0 |                   
+  use-user.ts      |       0 |      100 |       0 |       0 | 4-6               
+ lib/supabase      |   96.42 |      100 |     100 |   96.42 |                   
+  client.ts        |     100 |      100 |     100 |     100 |                   
+  middleware.ts    |   95.23 |      100 |     100 |   95.23 | 45                
+  server.ts        |     100 |      100 |     100 |     100 |                   
+ lib/validations   |     100 |       75 |     100 |     100 |                   
+  middleware.ts    |     100 |       75 |     100 |     100 | 21                
+  resume.ts        |     100 |      100 |     100 |     100 |                   
+  schemas.ts       |     100 |      100 |     100 |     100 |                   
+-------------------|---------|----------|---------|---------|-------------------
+ERROR: Coverage for lines (77.96%) does not meet 
+global threshold (80%)
+ERROR: Coverage for statements (77.96%) does not 
+meet global threshold (80%)
+ERROR: Coverage for branches (72.63%) does not meet 
+global threshold (80%)

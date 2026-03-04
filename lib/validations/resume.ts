@@ -18,3 +18,10 @@ export const ResumeParseSchema = z.object({
 });
 
 export type ResumeParseResult = z.infer<typeof ResumeParseSchema>;
+
+// Pending Profile Payload Validation
+export const PendingProfileSchema = ResumeParseSchema.extend({
+  email: z.email({ message: "A valid email is required to save progress." }),
+});
+
+export type PendingProfilePayload = z.infer<typeof PendingProfileSchema>;
