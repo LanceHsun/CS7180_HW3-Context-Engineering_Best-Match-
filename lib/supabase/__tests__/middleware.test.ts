@@ -42,6 +42,7 @@ describe("Supabase Middleware", () => {
 
     mockRequest = {
       cookies: {
+        get: vi.fn(),
         getAll: vi.fn().mockReturnValue([{ name: "test", value: "123" }]),
         set: vi.fn(),
       },
@@ -122,6 +123,7 @@ describe("Supabase Middleware Redirection", () => {
 
     mockRequest = {
       cookies: {
+        get: vi.fn(),
         getAll: vi.fn().mockReturnValue([]),
         set: vi.fn(),
       },
@@ -179,9 +181,20 @@ describe("Supabase Middleware Redirection", () => {
     expect(redirectUrl.toString()).toContain("/dashboard");
   });
 
+  it("allows access to /dashboard if sb-mock-user cookie is present", async () => {
+    setupAuth(null);
+    mockRequest.url = "http://localhost:3001/dashboard";
+    mockRequest.cookies.get.mockReturnValue({ value: "test@example.com" });
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).not.toHaveBeenCalled();
+    expect(NextResponse.next).toHaveBeenCalled();
+  });
+
   it("allows unauthenticated user to access home page", async () => {
     setupAuth(null);
-    mockRequest.url = "http://localhost:3000/";
+    mockRequest.url = "http://localhost:3001/";
 
     const response = await updateSession(mockRequest as NextRequest);
 

@@ -6,7 +6,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScanLine } from "./scan-line";
 import { cn } from "@/lib/utils";
 
-export function ResumeDropzone() {
+interface ResumeDropzoneProps {
+  onSuccess?: (fileName: string) => void;
+}
+
+export function ResumeDropzone({ onSuccess }: ResumeDropzoneProps) {
   const [dragOver, setDragOver] = useState(false);
   const [status, setStatus] = useState<
     "idle" | "scanning" | "success" | "error"
@@ -20,6 +24,7 @@ export function ResumeDropzone() {
     setFileName(file.name);
     setTimeout(() => {
       setStatus("success");
+      onSuccess?.(file.name);
     }, 2800);
   };
 
