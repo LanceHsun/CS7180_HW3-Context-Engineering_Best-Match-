@@ -33,14 +33,15 @@ export default function SignInPage() {
 
     // Mock logic for testing when Supabase is not configured or using placeholders
     const isPlaceholderEnv =
-      !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes("your-supabase-url") ||
-      process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder");
+      process.env.NODE_ENV !== "test" &&
+      (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes("your-supabase-url") ||
+        process.env.NEXT_PUBLIC_SUPABASE_URL.includes("placeholder"));
 
     if (isPlaceholderEnv) {
       console.log("Demo Mode: Simulating Magic Link sent to", email);
       // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setIsSent(true);
       setIsLoading(false);
       return;
