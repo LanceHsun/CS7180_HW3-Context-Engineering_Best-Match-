@@ -2,8 +2,16 @@ import { defineConfig, devices } from "@playwright/test";
 import dotenv from "dotenv";
 import path from "path";
 
+// Temporarily disable console.log to prevent dotenv from spamming stdout
+// This is important because Playwright's JSON reporter (if piped to a file) gets corrupted by these logs.
+const originalConsoleLog = console.log;
+console.log = () => {};
 // Read from default ".env.local" file first to ensure user's real configs supersede mock values
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+dotenv.config({
+  path: path.resolve(process.cwd(), ".env.local"),
+  override: true,
+});
+console.log = originalConsoleLog;
 
 // Provide fallback environment variables for E2E tests so the server can boot.
 // This allows the CI and fresh checkouts to pass `lib/env.ts` validation smoothly.

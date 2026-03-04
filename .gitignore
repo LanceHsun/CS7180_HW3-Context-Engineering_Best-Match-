@@ -10,7 +10,14 @@
 
 # testing
 /coverage
-
+report.json
+/test-results
+/playwright-report
+/blob-report
+test_error.txt
+test_output.txt
+report*.json
+playwright*.txt
 # next.js
 /.next/
 /out/

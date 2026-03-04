@@ -8,7 +8,7 @@ import { Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 
-const emailSchema = z.string().email("Please enter a valid email address");
+const emailSchema = z.email({ message: "Please enter a valid email address" });
 
 export default function SignInPage() {
   const [email, setEmail] = useState("");
