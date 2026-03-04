@@ -170,9 +170,9 @@ describe("Supabase Middleware Redirection", () => {
     expect(redirectUrl.toString()).toContain("/dashboard");
   });
 
-  it("redirects authenticated user from /onboarding to /dashboard", async () => {
+  it("redirects authenticated user from / to /dashboard", async () => {
     setupAuth({ id: "123" });
-    mockRequest.url = "http://localhost:3000/onboarding";
+    mockRequest.url = "http://localhost:3001/";
 
     const response = await updateSession(mockRequest as NextRequest);
 
@@ -195,10 +195,23 @@ describe("Supabase Middleware Redirection", () => {
   it("allows unauthenticated user to access home page", async () => {
     setupAuth(null);
     mockRequest.url = "http://localhost:3001/";
+    mockRequest.cookies.get.mockReturnValue(undefined);
 
     const response = await updateSession(mockRequest as NextRequest);
 
     expect(NextResponse.redirect).not.toHaveBeenCalled();
     expect(NextResponse.next).toHaveBeenCalled();
+  });
+
+  it("redirects user with sb-mock-user cookie from / to /dashboard", async () => {
+    setupAuth(null);
+    mockRequest.url = "http://localhost:3001/";
+    mockRequest.cookies.get.mockReturnValue({ value: "test@example.com" });
+
+    const response = await updateSession(mockRequest as NextRequest);
+
+    expect(NextResponse.redirect).toHaveBeenCalled();
+    const redirectUrl = vi.mocked(NextResponse.redirect).mock.calls[0][0];
+    expect(redirectUrl.toString()).toContain("/dashboard");
   });
 });

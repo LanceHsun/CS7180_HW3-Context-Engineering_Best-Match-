@@ -12,7 +12,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-02 | `bbbb4a0d` | Frontend Project Scaffolding | Initialized Next.js 15 + Shadcn UI; Setup routing, ESLint/Prettier/Husky; Updated standards. | ✅ Complete |
 | 2026-03-03 | `bbbb4a0d` | Next.js Version Alignment | Downgraded Next.js from 16 to 15 to align with `.antigravityrules`. | ✅ Complete |
 | 2026-03-03 | `bbbb4a0d` | Magic Link Sign-in Implementation | Implemented Magic Link sign-in UI and logic with Supabase; Added unit tests and Vitest configuration. | ✅ Complete |
-| 2026-03-03 | `993a1c3d` | Onboarding Flow & Prototype Auth | Built Hero, Dropzone, and Extraction Results; Implemented AI animation and `sb-mock-user` auth bypass. | ✅ Complete |
+| 2026-03-03 | `993a1c3d` | Onboarding Flow & Root Path Migration | Moved Onboarding to `/`; Implemented AI animation and `sb-mock-user` auth bypass; Redirection logic updated. | ✅ Complete |
 | 2026-03-03 | `87d36805` | Auth Session & Route Protection | Implemented session persistence, middleware redirection, auth callback, and `useUser` hook. | ✅ Complete |
 
 ## Architectural Decisions

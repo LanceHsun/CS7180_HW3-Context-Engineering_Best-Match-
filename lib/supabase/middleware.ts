@@ -59,9 +59,8 @@ export async function updateSession(request: NextRequest) {
 
   // Auth routes: redirect authenticated users to /dashboard
   if (
-    user &&
-    (url.pathname.startsWith("/signin") ||
-      url.pathname.startsWith("/onboarding"))
+    (user || isPrototypeBypass) &&
+    (url.pathname.startsWith("/signin") || url.pathname === "/")
   ) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
