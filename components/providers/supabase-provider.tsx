@@ -24,16 +24,42 @@ export default function SupabaseProvider({
   const router = useRouter();
 
   useEffect(() => {
+    // Check for mock user cookie in development/prototype mode
+    const mockUserEmail = document.cookie
+      .split("; ")
+      .find((row) => row.startsWith("sb-mock-user="))
+      ?.split("=")[1];
+
+    if (mockUserEmail) {
+      setUser({
+        id: "mock-id",
+        email: decodeURIComponent(mockUserEmail),
+        aud: "authenticated",
+        role: "authenticated",
+        created_at: new Date().toISOString(),
+        app_metadata: {},
+        user_metadata: {},
+      } as User);
+      setIsLoading(false);
+    }
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
+      if (session?.user) {
+        setUser(session.user);
+      } else if (!mockUserEmail) {
+        setUser(null);
+      }
       setIsLoading(false);
 
       if (event === "SIGNED_IN") {
         router.refresh();
       }
       if (event === "SIGNED_OUT") {
+        // Clear mock cookie on sign out
+        document.cookie =
+          "sb-mock-user=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
         router.refresh();
       }
     });
