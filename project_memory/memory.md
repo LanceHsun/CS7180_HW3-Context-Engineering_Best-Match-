@@ -13,7 +13,10 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-03 | `bbbb4a0d` | Next.js Version Alignment | Downgraded Next.js from 16 to 15 to align with `.antigravityrules`. | ✅ Complete |
 | 2026-03-03 | `bbbb4a0d` | Magic Link Sign-in Implementation | Implemented Magic Link sign-in UI and logic with Supabase; Added unit tests and Vitest configuration. | ✅ Complete |
 | 2026-03-03 | `87d36805` | Auth Session & Route Protection | Implemented session persistence, middleware redirection, auth callback, and `useUser` hook. | ✅ Complete |
-
+| 2026-03-03 | `d6ef4132` | Resume Parsing & Gemini API (Issue #9) | Implemented `POST /api/resume/parse` with `pdf-parse` and Gemini 1.5 Pro. Added Zod schemas, UI integration, Vitest/Playwright tests exceeding 80% coverage. Resolved ESM and client-side Zod validation crashes. | ✅ Complete |
+| 2026-03-04 | `6cebb738` | Fix JSON Report Corruption | Silenced `dotenv` output in `playwright.config.ts` to prevent corruption of Playwright JSON reports piped to standard output; repaired `report.json`. | ✅ Complete |
+| 2026-03-04 | `6cebb738` | Update Zod v4 Syntax | Replaced deprecated `z.string().email()` and `z.string().url()` with standard Zod v4 top-level primitives `z.email()` and `z.url()`. | ✅ Complete |
+| 2026-03-04 | `6cebb738` | Playwright E2E Verification | Removed compiled `e2e/*.js` artifacts from types compiler and successfully executed full Playwright test suite. All tests passing. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
@@ -52,7 +55,8 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - **Deployments:** Native Vercel integration implicitly provides robust Preview Deployments.
 
 ### Phase 2: Next.js Application Architecture & Features
-- [x] Onboarding UI Implementation (In Progress)
+### Phase 2: Next.js Application Architecture & Features
+- [x] Onboarding UI Implementation (Issue #10)
 - [x] Session Persistence & Route Protection (Issue #6)
-- [ ] Resume Parsing Backend Integration
+- [x] Resume Parsing Backend Integration (Issue #9)
 - [ ] Job Match Listing UI
