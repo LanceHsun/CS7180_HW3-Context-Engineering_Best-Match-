@@ -64,11 +64,9 @@ describe("POST /api/resume/parse", () => {
   it("returns 200 and parsed data on success", async () => {
     // Mock pdf-parse module dynamic import
     vi.mock("pdf-parse", async () => ({
-      default: vi
-        .fn()
-        .mockResolvedValue({
-          text: "Software Engineer with 5 years experience.",
-        }),
+      default: vi.fn().mockResolvedValue({
+        text: "Software Engineer with 5 years experience.",
+      }),
     }));
 
     const mockGenerateContent = vi.fn().mockResolvedValue({
