@@ -68,16 +68,31 @@ test.describe("Onboarding PDF Upload Flow", () => {
       },
     ]);
 
+    // Mock the pending profile API so we don't hit the DB in E2E tests
+    let pendingApiCalled = false;
+    await page.route("/api/profile/pending", async (route) => {
+      pendingApiCalled = true;
+      const request = route.request();
+      expect(request.method()).toBe("POST");
+      const postData = JSON.parse(request.postData() || "{}");
+      expect(postData.email).toBe("test@example.com");
+      expect(postData.targetRole).toBe("Senior Software Engineer");
+
+      await route.fulfill({ json: { success: true } });
+    });
+
+    // Fill the email and continue
+    await page.fill("input#email", "test@example.com");
     await page
       .getByRole("button", { name: /Start Receiving Matches/i })
       .click();
 
-    // Verify redirect to signin, which should then redirect to dashboard due to cookie
-    // The middleware handles the redirect.
+    // Verify the API was actually called
+    expect(pendingApiCalled).toBe(true);
+    // Verify redirect to dashboard (middleware redirects authenticated users)
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.locator("h1")).toContainText("Dashboard");
   });
-
   test("verifies basic keyboard navigation on onboarding page", async ({
     page,
   }) => {

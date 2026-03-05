@@ -74,12 +74,32 @@ export default function OnboardingPage() {
       return;
     }
     setLoading(true);
-    // Here we would trigger the magic link auth, preserving the parsed data.
-    // Since issue #9 focuses strictly on the parser and UI feedback,
-    // we simulate the success state or redirect to signin/dashboard.
-    setTimeout(() => {
+    try {
+      // Safely drop-box the parsed profile to the pending_profiles table
+      const res = await fetch("/api/profile/pending", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          targetRole: parsedData?.targetRole,
+          skills: parsedData?.skills,
+          yearsOfExperience: parsedData?.yearsOfExperience,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to save profile progress.");
+      }
+
+      // Success! Redirect to the signin page to trigger the Magic Link email.
       router.push("/signin?email=" + encodeURIComponent(email));
-    }, 1000);
+    } catch (err: any) {
+      setError(
+        err.message || "An unexpected error occurred saving your profile."
+      );
+      setLoading(false);
+    }
   };
 
   return (

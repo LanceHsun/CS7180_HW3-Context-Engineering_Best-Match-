@@ -22,10 +22,19 @@ export async function POST(req: NextRequest) {
     // 1. Extract text from PDF
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
-    const pdfParseModule = await import("pdf-parse");
-    const pdf = (pdfParseModule as any).default || pdfParseModule;
-    const pdfData = await pdf(buffer);
-    const text = pdfData.text;
+    const PDFParserModule = await import("pdf2json");
+    const PDFParser = PDFParserModule.default || (PDFParserModule as any);
+
+    const text = await new Promise<string>((resolve, reject) => {
+      const pdfParser = new PDFParser(null, true);
+      pdfParser.on("pdfParser_dataError", (errData: any) =>
+        reject(new Error(errData.parserError?.message || "Failed to parse PDF"))
+      );
+      pdfParser.on("pdfParser_dataReady", () => {
+        resolve(pdfParser.getRawTextContent().replace(/\r\n/g, "\n"));
+      });
+      pdfParser.parseBuffer(buffer);
+    });
 
     if (!text || text.trim().length === 0) {
       return NextResponse.json(

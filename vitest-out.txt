@@ -1,0 +1,93 @@
+﻿
+[1m[46m RUN [49m[22m [36mv4.0.18 [39m[90mC:/zhuanma/CS7180/Project2/CS7180_HW3-Context-Engineering_Best-Match-[39m
+
+npx : [90mstderr[2m | 
+app/auth/callback/__tests__/route.test.ts[2m > 
+[22m[2mAuth Callback Sync[2m > [22m[2mshould 
+continue gracefully if the sync upsert fails 
+(simulating DB error requested by user)
+At line:1 char:1
++ npx vitest run 
+app/auth/callback/__tests__/route.test.ts > 
+vitest-out ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([90mst 
+   derr[2m...uested by user):String) [], RemoteExc  
+  eption
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+[22m[39mFailed to sync pending profile to main 
+table: Error: DB Constraint Violated
+    at C:/zhuanma/CS7180/Project2/CS7180_HW3-Context-
+Engineering_Best-Match-/app/auth/callback/__tests__/r
+oute.test.ts:126:47
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:145:11
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:915:26
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1243:20
+    at new Promise (<anonymous>)
+    at runWithTimeout [90m(file:///C:/zhuanma/CS7180
+/Project2/CS7180_HW3-Context-Engineering_Best-Match-/
+[39mnode_modules/[4m@vitest[24m/runner/dist/index.
+js:1209:10[90m)[39m
+    at [90mfile:///C:/zhuanma/CS7180/Project2/CS7180
+_HW3-Context-Engineering_Best-Match-/[39mnode_module
+s/[4m@vitest[24m/runner/dist/index.js:1653:37
+    at Traces.$ [90m(file:///C:/zhuanma/CS7180/Proje
+ct2/CS7180_HW3-Context-Engineering_Best-Match-/[39mn
+ode_modules/[4mvitest[24m/dist/chunks/traces.CCmnQa
+NT.js:142:27[90m)[39m
+    at trace [90m(file:///C:/zhuanma/CS7180/Project2
+/CS7180_HW3-Context-Engineering_Best-Match-/[39mnode
+_modules/[4mvitest[24m/dist/chunks/test.B8ej_ZHS.js
+:239:21[90m)[39m
+    at runTest [90m(file:///C:/zhuanma/CS7180/Projec
+t2/CS7180_HW3-Context-Engineering_Best-Match-/[39mno
+de_modules/[4m@vitest[24m/runner/dist/index.js:1653
+:12[90m)[39m
+
+ [31mΓ¥»[39m app/auth/callback/__tests__/route.test.ts [2m([22m[2m2 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[32m 42[2mms[22m[39m
+[31m     [31m├ù[31m should successfully sync a pending profile into the main profiles table and delete it[39m[32m 34[2mms[22m[39m
+     [32mΓ£ô[39m should continue gracefully if the sync upsert fails (simulating DB error requested by user)[32m 6[2mms[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m[1m[41m Failed 
+Tests 1 [49m[22m[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+
+[41m[1m FAIL [22m[49m 
+app/auth/callback/__tests__/route.test.ts[2m > 
+[22mAuth Callback Sync[2m > [22mshould 
+successfully sync a pending profile into the main 
+profiles table and delete it
+[31m[1mAssertionError[22m: expected "vi.fn()" to 
+be called with arguments: [ 'pending_profiles' ][90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[36m [2mΓ¥»[22m app/auth/callback/__tests__/route.
+test.ts:[2m107:38[22m[39m
+    [90m105| [39m
+    [90m106| [39m        [90m// Ensure we deleted 
+the pending record[39m
+    [90m107| [39m        expect(mockAdminClient.fro
+m).toHaveBeenCalledWith("pending_proΓÇª
+    [90m   | [39m                                  
+   [31m^[39m
+    [90m108| [39m        [34mexpect[39m(mockDelet
+e)[33m.[39m[34mtoHaveBeenCalled[39m()[33m;[39m
+    [90m109| [39m    })[33m;[39m
+
+[31m[2mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ
+»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1/1]ΓÄ»[22m[39m
+
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m1 passed[39m[22m[90m (2)[39m
+[2m   Start at [22m 15:40:08
+[2m   Duration [22m 362ms[2m (transform 91ms, setup 0ms, import 124ms, tests 42ms, environment 0ms)[22m
+

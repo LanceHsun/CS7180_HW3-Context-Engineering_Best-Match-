@@ -11,6 +11,60 @@ export async function GET(request: NextRequest) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
+      // 1. Sync pending profile if it exists
+      const { data: userAuthData } = await supabase.auth.getUser();
+      const user = userAuthData?.user;
+
+      if (user && user.email) {
+        // We use the service role key here because the client has no RLS read access to pending_profiles
+        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+        const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+        // The server createClient expects 0 args, we need to import the pure supabase-js client for admin tasks.
+        const { createClient: createAdminClient } =
+          await import("@supabase/supabase-js");
+        const supabaseAdmin = createAdminClient(supaUrl, supaKey, {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
+            detectSessionInUrl: false,
+          },
+        });
+
+        // Find pending profile securely
+        const { data: pendingProfile } = await supabaseAdmin
+          .from("pending_profiles")
+          .select("*")
+          .eq("email", user.email)
+          .single();
+
+        if (pendingProfile) {
+          // Sync to main profiles table
+          const { error: upsertError } = await supabase
+            .from("profiles")
+            .upsert({
+              user_id: user.id,
+              target_role: pendingProfile.target_role,
+              skills: pendingProfile.skills,
+              experience_level: pendingProfile.experience_level,
+            });
+
+          if (!upsertError) {
+            // Delete the pending record to keep it clean
+            await supabaseAdmin
+              .from("pending_profiles")
+              .delete()
+              .eq("email", user.email);
+          } else {
+            console.error(
+              "Failed to sync pending profile to main table:",
+              upsertError
+            );
+            // We log the error but allow the login to proceed. They can retry setting their profile.
+          }
+        }
+      }
+
+      // 2. Redirect
       const forwardedHost = request.headers.get("x-forwarded-host"); // Beetroot: usually set by reverse proxies
       const isLocalEnv = process.env.NODE_ENV === "development";
       if (isLocalEnv) {
