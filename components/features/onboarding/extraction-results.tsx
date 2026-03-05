@@ -4,35 +4,32 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ResumeParseResult } from "@/lib/validations/resume";
 
 interface ExtractionResultsProps {
+  parsedData: ResumeParseResult | null;
   onComplete: () => void;
 }
 
-export function ExtractionResults({ onComplete }: ExtractionResultsProps) {
+export function ExtractionResults({
+  parsedData,
+  onComplete,
+}: ExtractionResultsProps) {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
 
-  const skills = [
-    "React",
-    "TypeScript",
-    "Node.js",
-    "Python",
-    "AWS",
-    "PostgreSQL",
-    "REST API",
-    "Agile",
-  ];
+  const skills = parsedData?.skills || [];
+  const targetRole = parsedData?.targetRole || "Software Engineer";
 
-  const handleStartMatches = async () => {
+  const handleStartMatches = () => {
+    if (!email) return;
     setLoading(true);
-    // Simulate API call
+
+    // Simulate a brief delay for UX before redirecting
     setTimeout(() => {
-      // Set mock user cookie for prototype bypass
-      document.cookie = `sb-mock-user=${encodeURIComponent(email)}; path=/; max-age=3600`;
-      setLoading(false);
       onComplete();
-    }, 2000);
+      setLoading(false);
+    }, 800);
   };
 
   return (
@@ -55,7 +52,8 @@ export function ExtractionResults({ onComplete }: ExtractionResultsProps) {
           </label>
           <input
             type="text"
-            defaultValue="Senior Software Engineer"
+            defaultValue={targetRole}
+            readOnly
             className="border-input bg-muted/30 w-full rounded-lg border px-3.5 py-2.5 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
           />
         </div>

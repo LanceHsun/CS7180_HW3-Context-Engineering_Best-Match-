@@ -68,38 +68,13 @@ export default function OnboardingPage() {
     if (file) handleFile(file);
   };
 
-  const handleContinue = async () => {
+  const handleContinue = () => {
     if (!email) {
       setError("Please enter your email to continue.");
       return;
     }
-    setLoading(true);
-    try {
-      // Safely drop-box the parsed profile to the pending_profiles table
-      const res = await fetch("/api/profile/pending", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          targetRole: parsedData?.targetRole,
-          skills: parsedData?.skills,
-          yearsOfExperience: parsedData?.yearsOfExperience,
-        }),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to save profile progress.");
-      }
-
-      // Success! Redirect to the signin page to trigger the Magic Link email.
-      router.push("/signin?email=" + encodeURIComponent(email));
-    } catch (err: any) {
-      setError(
-        err.message || "An unexpected error occurred saving your profile."
-      );
-      setLoading(false);
-    }
+    // Simple redirect for demo
+    router.push("/signin?email=" + encodeURIComponent(email));
   };
 
   return (
@@ -220,19 +195,6 @@ export default function OnboardingPage() {
                     ))}
                   </div>
                 </div>
-
-                {parsedData.yearsOfExperience !== undefined && (
-                  <div className="space-y-2">
-                    <Label className="text-xs font-semibold text-[#475569]">
-                      Years of Experience
-                    </Label>
-                    <Input
-                      readOnly
-                      defaultValue={parsedData.yearsOfExperience}
-                      className="h-11 w-24 bg-[#f8fafc]"
-                    />
-                  </div>
-                )}
 
                 <div className="my-6 h-px w-full bg-[#e2e8f0]" />
 
