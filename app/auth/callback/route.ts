@@ -17,50 +17,63 @@ export async function GET(request: NextRequest) {
 
       if (user && user.email) {
         // We use the service role key here because the client has no RLS read access to pending_profiles
-        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-        const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-        // The server createClient expects 0 args, we need to import the pure supabase-js client for admin tasks.
-        const { createClient: createAdminClient } =
-          await import("@supabase/supabase-js");
-        const supabaseAdmin = createAdminClient(supaUrl, supaKey, {
-          auth: {
-            persistSession: false,
-            autoRefreshToken: false,
-            detectSessionInUrl: false,
-          },
-        });
+        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-        // Find pending profile securely
-        const { data: pendingProfile } = await supabaseAdmin
-          .from("pending_profiles")
-          .select("*")
-          .eq("email", user.email)
-          .single();
-
-        if (pendingProfile) {
-          // Sync to main profiles table
-          const { error: upsertError } = await supabase
-            .from("profiles")
-            .upsert({
-              user_id: user.id,
-              target_role: pendingProfile.target_role,
-              skills: pendingProfile.skills,
-              experience_level: pendingProfile.experience_level,
+        if (supaUrl && supaKey) {
+          try {
+            // The server createClient expects 0 args, we need to import the pure supabase-js client for admin tasks.
+            const { createClient: createAdminClient } =
+              await import("@supabase/supabase-js");
+            const supabaseAdmin = createAdminClient(supaUrl, supaKey, {
+              auth: {
+                persistSession: false,
+                autoRefreshToken: false,
+                detectSessionInUrl: false,
+              },
             });
 
-          if (!upsertError) {
-            // Delete the pending record to keep it clean
-            await supabaseAdmin
+            // Find pending profile securely
+            const { data: pendingProfile, error: pendingError } = await supabaseAdmin
               .from("pending_profiles")
-              .delete()
-              .eq("email", user.email);
-          } else {
-            console.error(
-              "Failed to sync pending profile to main table:",
-              upsertError
-            );
-            // We log the error but allow the login to proceed. They can retry setting their profile.
+              .select("*")
+              .eq("email", user.email)
+              .maybeSingle();
+
+            if (pendingError) {
+              console.error("Failed to query pending profile:", pendingError);
+            }
+
+            if (pendingProfile) {
+              // Sync to main profiles table
+              const { error: upsertError } = await supabase
+                .from("profiles")
+                .upsert({
+                  user_id: user.id,
+                  target_role: pendingProfile.target_role,
+                  skills: pendingProfile.skills,
+                  experience_level: pendingProfile.experience_level,
+                }, { onConflict: 'user_id' });
+
+              if (!upsertError) {
+                // Delete the pending record to keep it clean
+                await supabaseAdmin
+                  .from("pending_profiles")
+                  .delete()
+                  .eq("email", user.email);
+              } else {
+                console.error(
+                  "Failed to sync pending profile to main table:",
+                  upsertError
+                );
+                // We log the error but allow the login to proceed. They can retry setting their profile.
+              }
+            }
+          } catch (error) {
+            console.error("Error syncing pending profile:", error);
           }
+        } else {
+          console.warn("Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL. Skipping pending profile sync.");
         }
       }
 
