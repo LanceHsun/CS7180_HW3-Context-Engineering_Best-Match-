@@ -19,6 +19,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-04 | `6cebb738` | Update Zod v4 Syntax | Replaced deprecated `z.string().email()` and `z.string().url()` with standard Zod v4 top-level primitives `z.email()` and `z.url()`. | ✅ Complete |
 | 2026-03-04 | `6cebb738` | Playwright E2E Verification | Removed compiled `e2e/*.js` artifacts from types compiler and successfully executed full Playwright test suite. All tests passing. | ✅ Complete |
 | 2026-03-04 | `6cebb738` | Cross-Device Profile Saving (Issue #10) | Implemented `pending_profiles` table, `POST /api/profile/pending` anonymous drop-box route, and integrated syncing logic into `auth/callback`. Tests updated and all CI gates passing (100% coverage on new APIs). | ✅ Complete |
+| 2026-03-04 | `6cebb738` | Fix PDF Parsing 500 Error | Resolved `DOMMatrix is not defined` crashes in `/api/resume/parse` by migrating entirely from the bugged `pdf-parse` library to `pdf2json`. Re-wrote Vitest assertions against true PDF binary arrays for 100% stable integration verification. | ✅ Complete |
 
 ## Architectural Decisions
 

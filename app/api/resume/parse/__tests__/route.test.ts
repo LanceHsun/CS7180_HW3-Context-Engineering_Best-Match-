@@ -4,11 +4,21 @@ import { NextRequest } from "next/server";
 import { ai } from "@/lib/ai";
 import * as supabaseServer from "@/lib/supabase/server";
 
-// Mock pdf-parse
-vi.mock("pdf-parse", () => {
-  return {
-    default: vi.fn(),
-  };
+// Mock pdf2json
+vi.mock("pdf2json", () => {
+  class MockPDFParser {
+    on(event: string, callback: any) {
+      if (event === "pdfParser_dataReady") {
+        callback();
+      }
+      return this;
+    }
+    parseBuffer() {}
+    getRawTextContent() {
+      return "Software Engineer with 5 years experience.";
+    }
+  }
+  return { default: MockPDFParser };
 });
 
 // Mock generative AI
@@ -62,14 +72,7 @@ describe("POST /api/resume/parse", () => {
   });
 
   it("returns 200 and parsed data on success", async () => {
-    // Mock pdf-parse module dynamic import
-    vi.mock("pdf-parse", async () => ({
-      default: vi
-        .fn()
-        .mockResolvedValue({
-          text: "Software Engineer with 5 years experience.",
-        }),
-    }));
+    // Uses the global pdf2json mock
 
     const mockGenerateContent = vi.fn().mockResolvedValue({
       response: {
@@ -93,10 +96,14 @@ describe("POST /api/resume/parse", () => {
     };
     (supabaseServer.createClient as any).mockResolvedValue(mockSupabase);
 
+    const minimalPDF = Buffer.from(
+      "JVBERi0xLjcKCjEgMCBvYmogICUKPDwKICAvVHlwZSAvQ2F0YWxvZwogIC9QYWdlcyAyIDAgUgo+PgplbmRvYmoKCjIgMCBvYmogICUKPDwKICAvVHlwZSAvUGFnZXMKICAvTWVkaWFCb3ggWyAwIDAgMjAwIDIwMCBdCiAgL0NvdW50IDEKICAvS2lkcyBbIDMgMCBSIF0KPj4KZW5kb2JqCgozIDAgb2JqICAlCjw8CiAgL1R5cGUgL1BhZ2UKICAvUGFyZW50IDIgMCBSCiAgL1Jlc291cmNlcyA8PAogICAgL0ZvbnQgPDwKICAgICAgL0YxIDQgMCBSCgogICAgPj4KICA+PgogIC9Db250ZW50cyA1IDAgUgo+PgplbmRvYmoKCjQgMCBvYmogICUKPDwKICAvVHlwZSAvRm9udAogIC9TdWJ0eXBlIC9UeXBlMQogIC9CYXNlRm9udCAvVGltZXMtUm9tYW4KPj4KZW5kb2JqCgo1IDAgb2JqICAlCjw8CiAgL0xlbmd0aCA0NAo+PgpzdHJlYW0KQlQKMTUgVEQKKEYxKSAyNCBUZgooSGVsbG8gV29ybGQpIFRqCkVUCmVuZHN0cmVhbQplbmRvYmoKCnhyZWYKMCA2CjAwMDAwMDAwMDAgNjU1MzUgZiAKMDAwMDAwMDAxNiAwMDAwMCBuIAowMDAwMDAwMDg4IDAwMDAwIG4gCjAwMDAwMDAxODYgMDAwMDAgbiAKMDAwMDAwMDMzNiAwMDAwMCBuIAowMDAwMDAwNDM5IDAwMDAwIG4gCnRyYWlsZXIKPDwKICAvU2l6ZSA2CiAgL1Jvb3QgMSAwIFIKPj4Kc3RhcnR4cmVmCjUzNAolJUVPRgo=",
+      "base64"
+    );
     const formData = new FormData();
     formData.append(
       "file",
-      new File(["%PDF-1.4 mock content"], "test.pdf", {
+      new File([minimalPDF], "test.pdf", {
         type: "application/pdf",
       })
     );
@@ -108,6 +115,10 @@ describe("POST /api/resume/parse", () => {
 
     const response = await POST(mockRequest);
     const json = await response.json();
+
+    if (response.status === 500) {
+      console.error(json);
+    }
 
     expect(response.status).toBe(200);
     expect(json.success).toBe(true);
