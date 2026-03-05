@@ -77,6 +77,8 @@ vi.mock("@supabase/supabase-js", () => ({
 describe("Auth Callback Sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "http://test-url.com";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-admin-key";
   });
 
   it("should successfully sync a pending profile into the main profiles table and delete it", async () => {
@@ -89,7 +91,7 @@ describe("Auth Callback Sync", () => {
     // Admin pending select
     mockAdminClient.from.mockReturnValueOnce({ select: mockSelect } as any);
     mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ maybeSingle: mockSingle });
     mockSingle.mockResolvedValue({
       data: {
         target_role: "Designer",
@@ -125,7 +127,7 @@ describe("Auth Callback Sync", () => {
       target_role: "Designer",
       skills: ["Figma"],
       experience_level: "senior",
-    });
+    }, { onConflict: 'user_id' });
 
     // Ensure we deleted the pending record
     expect(mockAdminClient.from).toHaveBeenCalledWith("pending_profiles");
@@ -141,7 +143,7 @@ describe("Auth Callback Sync", () => {
 
     mockAdminClient.from.mockReturnValueOnce({ select: mockSelect });
     mockSelect.mockReturnValue({ eq: mockEq });
-    mockEq.mockReturnValue({ single: mockSingle });
+    mockEq.mockReturnValue({ maybeSingle: mockSingle });
     mockSingle.mockResolvedValue({
       data: { target_role: "Designer", skills: [] },
       error: null,

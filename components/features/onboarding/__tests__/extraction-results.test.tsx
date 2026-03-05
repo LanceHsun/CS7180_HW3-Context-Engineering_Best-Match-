@@ -5,11 +5,25 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ExtractionResults } from "../extraction-results";
 
+// Use vi.hoisted to create stable mock references that survive vi.clearAllMocks
+const mocks = vi.hoisted(() => ({
+  mockSignInWithOtp: vi.fn().mockResolvedValue({ data: {}, error: null }),
+}));
+
 // Mock framer-motion to avoid animation issues in tests
 vi.mock("framer-motion", () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   },
+}));
+
+// Mock Supabase client to avoid runtime env var errors
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: vi.fn(() => ({
+    auth: {
+      signInWithOtp: mocks.mockSignInWithOtp,
+    },
+  })),
 }));
 
 describe("ExtractionResults Component", () => {
@@ -22,6 +36,8 @@ describe("ExtractionResults Component", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Re-apply default resolved value after clearAllMocks wipes it
+    mocks.mockSignInWithOtp.mockResolvedValue({ data: {}, error: null });
     // Mock global fetch
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -65,8 +81,6 @@ describe("ExtractionResults Component", () => {
   });
 
   it("triggers onComplete after clicking the button and API success", async () => {
-    vi.useFakeTimers();
-
     render(
       <ExtractionResults
         parsedData={mockParsedData}
@@ -84,18 +98,12 @@ describe("ExtractionResults Component", () => {
 
     expect(screen.getByText("Creating your profile...")).toBeDefined();
 
-    // Fast-forward 1s (enough for 500ms timeout)
-    await vi.runAllTimersAsync();
-
-    expect(mockOnComplete).toHaveBeenCalled();
-
-    vi.useRealTimers();
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalled();
+    });
   });
 
-  it("sets the sb-mock-user cookie upon completion", async () => {
-    vi.useFakeTimers();
-    const cookieSpy = vi.spyOn(document, "cookie", "set");
-
+  it("calls signInWithOtp after successful profile save", async () => {
     render(
       <ExtractionResults
         parsedData={mockParsedData}
@@ -111,11 +119,8 @@ describe("ExtractionResults Component", () => {
     });
     fireEvent.click(submitButton);
 
-    await vi.runAllTimersAsync();
-
-    expect(document.cookie).toContain("sb-mock-user=test%40example.com");
-
-    vi.useRealTimers();
-    cookieSpy.mockRestore();
+    await waitFor(() => {
+      expect(mocks.mockSignInWithOtp).toHaveBeenCalled();
+    });
   });
 });
