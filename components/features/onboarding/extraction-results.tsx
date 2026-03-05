@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 import { ResumeParseResult } from "@/lib/validations/resume";
 
 interface ExtractionResultsProps {
@@ -19,6 +20,7 @@ export function ExtractionResults({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
+  const supabase = createClient();
   const skills = parsedData?.skills || [];
   const targetRole = parsedData?.targetRole || "Software Engineer";
 
@@ -45,16 +47,21 @@ export function ExtractionResults({
         throw new Error(data.error || "Failed to save profile");
       }
 
-      // 2. Set mock user cookie for development auth bypass
-      // This allows the middleware to recognize the user as authenticated
-      document.cookie = `sb-mock-user=${encodeURIComponent(
-        email
-      )}; path=/; max-age=3600; SameSite=Lax`;
+      // 2. Trigger Magic Link Email to create the account securely
+      const { error: signInError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-      // 3. Briefly show success before redirecting
-      setTimeout(() => {
-        onComplete();
-      }, 500);
+      if (signInError) {
+        throw signInError;
+      }
+
+      // 3. Complete and let the user know to check their email
+      onComplete();
+
     } catch (err: any) {
       console.error("Profile save error:", err);
       setError(err.message || "An error occurred. Please try again.");

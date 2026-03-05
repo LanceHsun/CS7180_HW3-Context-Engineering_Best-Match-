@@ -73,6 +73,16 @@ test.describe("Onboarding PDF Upload Flow", () => {
       },
     ]);
 
+    // Intercept ALL Supabase auth API calls (OTP, getUser, token refresh)
+    // Using regex instead of glob for reliable cross-origin URL matching
+    await page.route(/\/auth\/v1\//, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ user: null, session: null }),
+      });
+    });
+
     // Mock the pending profile API so we don't hit the DB in E2E tests
     let pendingApiCalled = false;
     await page.route("/api/profile/pending", async (route) => {
@@ -94,8 +104,8 @@ test.describe("Onboarding PDF Upload Flow", () => {
 
     // Verify the API was actually called
     expect(pendingApiCalled).toBe(true);
-    // Verify redirect to dashboard (middleware redirects authenticated users)
-    await expect(page).toHaveURL(/\/dashboard/);
+    // Verify redirect to dashboard (onComplete triggers router.push)
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     await expect(page.locator("h1")).toContainText("Dashboard");
   });
   test("verifies basic keyboard navigation on onboarding page", async ({

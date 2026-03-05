@@ -50,6 +50,8 @@ vi.mock("@supabase/supabase-js", () => ({
 describe("Profile APIs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "http://test-url.com";
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-admin-key";
   });
 
   describe("POST /api/profile/pending - Unauthenticated Drop-Box", () => {
