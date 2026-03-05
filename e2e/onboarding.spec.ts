@@ -1,9 +1,14 @@
 import { test, expect } from "@playwright/test";
 import * as fs from "fs";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 test.describe("Onboarding PDF Upload Flow", () => {
   // Create a dummy PDF file for testing
-  const dummyPdfPath = "test-resume.pdf";
+  const dummyPdfPath = path.join(__dirname, "test-resume.pdf");
 
   test.beforeAll(() => {
     // Write a tiny valid-ish PDF file (just enough to bypass basic mime checks,

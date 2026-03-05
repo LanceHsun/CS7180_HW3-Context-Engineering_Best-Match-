@@ -6,8 +6,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ScanLine } from "./scan-line";
 import { cn } from "@/lib/utils";
 
+import { ResumeParseResult } from "@/lib/validations/resume";
+
 interface ResumeDropzoneProps {
-  onSuccess?: (fileName: string) => void;
+  onSuccess?: (data: ResumeParseResult & { fileName: string }) => void;
 }
 
 export function ResumeDropzone({ onSuccess }: ResumeDropzoneProps) {
@@ -19,13 +21,32 @@ export function ResumeDropzone({ onSuccess }: ResumeDropzoneProps) {
   const [fileName, setFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const simulateParse = (file: File) => {
+  const handleFile = async (file: File) => {
     setStatus("scanning");
     setFileName(file.name);
-    setTimeout(() => {
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/resume/parse", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to parse resume");
+      }
+
       setStatus("success");
-      onSuccess?.(file.name);
-    }, 2800);
+      onSuccess?.({ ...data.data, fileName: file.name });
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      setStatus("error");
+      setErrorHeader(err.message || "Failed to parse resume");
+    }
   };
 
   const validateFile = (file: File) => {
@@ -47,14 +68,14 @@ export function ResumeDropzone({ onSuccess }: ResumeDropzoneProps) {
     setDragOver(false);
     const file = e.dataTransfer.files[0];
     if (file && validateFile(file)) {
-      simulateParse(file);
+      handleFile(file);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && validateFile(file)) {
-      simulateParse(file);
+      handleFile(file);
     }
   };
 

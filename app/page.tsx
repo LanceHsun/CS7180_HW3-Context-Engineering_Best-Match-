@@ -4,11 +4,13 @@ import { useState } from "react";
 import { HeroSection } from "@/components/features/onboarding/hero-section";
 import { ResumeDropzone } from "@/components/features/onboarding/resume-dropzone";
 import { ExtractionResults } from "@/components/features/onboarding/extraction-results";
+import { ResumeParseResult } from "@/lib/validations/resume";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [isParsed, setIsParsed] = useState(false);
+  const [parsedData, setParsedData] = useState<ResumeParseResult | null>(null);
   const router = useRouter();
 
   return (
@@ -37,10 +39,18 @@ export default function Home() {
         <div className="mx-auto max-w-[640px]">
           <HeroSection />
 
-          <ResumeDropzone onSuccess={() => setIsParsed(true)} />
+          <ResumeDropzone
+            onSuccess={(data) => {
+              setParsedData(data);
+              setIsParsed(true);
+            }}
+          />
 
           {isParsed && (
-            <ExtractionResults onComplete={() => router.push("/dashboard")} />
+            <ExtractionResults
+              parsedData={parsedData}
+              onComplete={() => router.push("/dashboard")}
+            />
           )}
 
           <p className="text-muted-foreground mt-8 text-center text-sm">
