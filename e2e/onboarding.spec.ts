@@ -73,6 +73,16 @@ test.describe("Onboarding PDF Upload Flow", () => {
       },
     ]);
 
+    // Intercept ALL Supabase auth API calls (OTP, getUser, token refresh)
+    // Using regex instead of glob for reliable cross-origin URL matching
+    await page.route(/\/auth\/v1\//, async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ user: null, session: null }),
+      });
+    });
+
     // Mock the pending profile API so we don't hit the DB in E2E tests
     let pendingApiCalled = false;
     await page.route("/api/profile/pending", async (route) => {
@@ -84,15 +94,6 @@ test.describe("Onboarding PDF Upload Flow", () => {
       expect(postData.targetRole).toBe("Senior Software Engineer");
 
       await route.fulfill({ json: { success: true } });
-    });
-
-    // Mock the Supabase OTP auth endpoint so signInWithOtp succeeds in CI
-    await page.route("**/auth/v1/otp", async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: JSON.stringify({}),
-      });
     });
 
     // Fill the email and continue
