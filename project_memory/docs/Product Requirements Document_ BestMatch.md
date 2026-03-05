@@ -51,9 +51,10 @@ The current job market requires candidates to manually scan dozens of boards and
 
 ## 6\. Functional Requirements (Data Flow)
 
-1. Onboarding: User signs up → Uploads PDF → FastAPI sends PDF to LLM → LLM returns JSON profile → Saved to Supabase.  
-2. Matching Engine: Cron job triggers (Daily/Weekly) → Backend fetches new jobs (via API/Scraper) → LLM compares Job Description vs. User Profile → Calculates Match Score.  
-3. Delivery: Backend filters scores \> 70% → Generates email template via SendGrid/SES → Sent to User.
+1. Onboarding: User uploads PDF -> AI Parsing (Gemini) -> Review Results -> Click "Start Matches" -> **Silent Signup** (Backend creates User & Profile) -> Redirect to Dashboard. (If user exists, redirect to Sign-in).
+2. Login: User enters email on Sign-in page -> Receives Magic Link via Email -> Clicks Link -> Redirected to Dashboard.
+3. Matching Engine: Cron job triggers (Daily/Weekly) → Backend fetches new jobs (via API/Scraper) → LLM compares Job Description vs. User Profile → Calculates Match Score.
+4. Delivery: Backend filters scores > 70% → Generates email template via SendGrid/SES → Sent to User.
 
 ## 7\. Out of Scope
 

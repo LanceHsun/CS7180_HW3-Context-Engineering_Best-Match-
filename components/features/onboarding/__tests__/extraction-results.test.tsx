@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  */
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { ExtractionResults } from "../extraction-results";
 
 // Mock framer-motion to avoid animation issues in tests
@@ -14,9 +14,28 @@ vi.mock("framer-motion", () => ({
 
 describe("ExtractionResults Component", () => {
   const mockOnComplete = vi.fn();
+  const mockParsedData = {
+    targetRole: "Senior Software Engineer",
+    skills: ["React", "TypeScript", "Node.js"],
+    yearsOfExperience: 8,
+  };
 
-  it("renders extraction results with default values", () => {
-    render(<ExtractionResults onComplete={mockOnComplete} />);
+  beforeEach(() => {
+    vi.clearAllMocks();
+    // Mock global fetch
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true }),
+    });
+  });
+
+  it("renders extraction results with provided data", () => {
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
 
     expect(screen.getByText("AI Extraction Results")).toBeDefined();
     expect(screen.getByDisplayValue("Senior Software Engineer")).toBeDefined();
@@ -25,7 +44,12 @@ describe("ExtractionResults Component", () => {
   });
 
   it("updates email state and enables button when email is present", () => {
-    render(<ExtractionResults onComplete={mockOnComplete} />);
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
 
     const emailInput = screen.getByPlaceholderText("you@example.com");
     const submitButton = screen.getByRole("button", {
@@ -40,11 +64,15 @@ describe("ExtractionResults Component", () => {
     expect((submitButton as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("triggers onComplete after clicking the button", async () => {
-    // Mock timers
+  it("triggers onComplete after clicking the button and API success", async () => {
     vi.useFakeTimers();
 
-    render(<ExtractionResults onComplete={mockOnComplete} />);
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
 
     const emailInput = screen.getByPlaceholderText("you@example.com");
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
@@ -56,8 +84,8 @@ describe("ExtractionResults Component", () => {
 
     expect(screen.getByText("Creating your profile...")).toBeDefined();
 
-    // Fast-forward 2s
-    vi.advanceTimersByTime(2000);
+    // Fast-forward 1s (enough for 500ms timeout)
+    await vi.runAllTimersAsync();
 
     expect(mockOnComplete).toHaveBeenCalled();
 
@@ -68,7 +96,12 @@ describe("ExtractionResults Component", () => {
     vi.useFakeTimers();
     const cookieSpy = vi.spyOn(document, "cookie", "set");
 
-    render(<ExtractionResults onComplete={mockOnComplete} />);
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
 
     const emailInput = screen.getByPlaceholderText("you@example.com");
     fireEvent.change(emailInput, { target: { value: "test@example.com" } });
@@ -78,7 +111,7 @@ describe("ExtractionResults Component", () => {
     });
     fireEvent.click(submitButton);
 
-    vi.advanceTimersByTime(2000);
+    await vi.runAllTimersAsync();
 
     expect(document.cookie).toContain("sb-mock-user=test%40example.com");
 

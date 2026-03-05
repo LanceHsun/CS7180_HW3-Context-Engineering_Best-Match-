@@ -17,19 +17,49 @@ export function ExtractionResults({
 }: ExtractionResultsProps) {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const skills = parsedData?.skills || [];
   const targetRole = parsedData?.targetRole || "Software Engineer";
 
-  const handleStartMatches = () => {
+  const handleStartMatches = async () => {
     if (!email) return;
     setLoading(true);
+    setError(null);
 
-    // Simulate a brief delay for UX before redirecting
-    setTimeout(() => {
-      onComplete();
+    try {
+      // 1. Call the pending profile API
+      const res = await fetch("/api/profile/pending", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          targetRole,
+          skills,
+          yearsOfExperience: parsedData?.yearsOfExperience,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || "Failed to save profile");
+      }
+
+      // 2. Set mock user cookie for development auth bypass
+      // This allows the middleware to recognize the user as authenticated
+      document.cookie = `sb-mock-user=${encodeURIComponent(
+        email
+      )}; path=/; max-age=3600; SameSite=Lax`;
+
+      // 3. Briefly show success before redirecting
+      setTimeout(() => {
+        onComplete();
+      }, 500);
+    } catch (err: any) {
+      console.error("Profile save error:", err);
+      setError(err.message || "An error occurred. Please try again.");
       setLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -37,36 +67,37 @@ export function ExtractionResults({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="border-border bg-card mt-8 overflow-hidden rounded-2xl border p-6 shadow-sm"
+      className="mt-8 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm sm:p-8"
     >
       <div className="mb-6">
-        <h2 className="text-muted-foreground font-mono text-[11px] font-bold tracking-[0.15em] uppercase">
+        <h2 className="font-mono text-[11px] font-bold tracking-[1.5px] text-[#94a3b8] uppercase">
           AI Extraction Results
         </h2>
       </div>
 
       <div className="space-y-6">
-        <div>
-          <label className="text-muted-foreground mb-2 block text-xs font-semibold">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-[#475569]">
             Target Role
           </label>
           <input
+            id="targetRole"
             type="text"
             defaultValue={targetRole}
             readOnly
-            className="border-input bg-muted/30 w-full rounded-lg border px-3.5 py-2.5 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+            className="h-11 w-full rounded-lg border-none bg-[#f8fafc] px-4 text-sm font-medium text-[#0f172a] focus:ring-2 focus:ring-[#0ea5e9]/20"
           />
         </div>
 
-        <div>
-          <label className="text-muted-foreground mb-3 block text-xs font-semibold">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-[#475569]">
             Detected Skills
           </label>
           <div className="flex flex-wrap gap-2">
             {skills.map((skill) => (
               <span
                 key={skill}
-                className="inline-flex items-center rounded-md border border-sky-500/10 bg-sky-500/5 px-2.5 py-1 text-xs font-medium text-sky-600"
+                className="rounded-md border border-[#0ea5e9]/20 bg-[#0ea5e9]/10 px-2.5 py-1 text-xs font-medium text-[#0ea5e9]"
               >
                 {skill}
               </span>
@@ -74,26 +105,33 @@ export function ExtractionResults({
           </div>
         </div>
 
-        <div className="bg-border/60 h-px" />
+        <div className="my-6 h-px w-full bg-[#e2e8f0]" />
 
-        <div>
-          <label className="text-muted-foreground mb-2 block text-xs font-semibold">
+        <div className="space-y-2">
+          <label className="text-xs font-semibold text-[#475569]">
             Email Address
           </label>
           <input
+            id="email"
             type="email"
             placeholder="you@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border-input bg-muted/30 w-full rounded-lg border px-3.5 py-2.5 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+            className="h-11 w-full rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-4 text-sm transition-all focus:border-[#0ea5e9] focus:ring-4 focus:ring-[#0ea5e9]/10 focus:outline-none"
           />
         </div>
+
+        {error && (
+          <p className="text-center text-xs font-medium text-red-500">
+            {error}
+          </p>
+        )}
 
         <button
           onClick={handleStartMatches}
           disabled={loading || !email}
           className={cn(
-            "relative w-full overflow-hidden rounded-lg bg-linear-to-r from-sky-500 to-emerald-500 py-3 text-sm font-bold text-white transition-all hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50",
+            "relative h-12 w-full overflow-hidden rounded-xl bg-gradient-to-r from-[#0ea5e9] to-[#10b981] text-sm font-bold text-white shadow-md transition-all hover:opacity-90 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50",
             loading && "cursor-wait"
           )}
         >
@@ -109,6 +147,10 @@ export function ExtractionResults({
             </span>
           )}
         </button>
+
+        <p className="text-center text-xs text-[#94a3b8]">
+          By continuing, you agree to our Terms of Service.
+        </p>
       </div>
     </motion.div>
   );

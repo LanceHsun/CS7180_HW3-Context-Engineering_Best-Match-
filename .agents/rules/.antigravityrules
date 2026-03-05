@@ -38,10 +38,12 @@
   - `ScoreBadge`: Color-coded match scores (Green >90%, Blue 80-90%, Orange <80%).
   - `MagicLinkUI`: Focused inbox check state.
 - **Critical User Flows:**
-  1. **Onboarding:** Drag-and-drop PDF -> AI Parsing -> Review Extraction -> Magic Link Sign-in.
-  2. **Dashboard:** Profile update -> Setting Preferences -> Reviewing Match History.
+  1. **Onboarding:** Drag-and-drop PDF -> AI Parsing -> Review Extraction -> Click "Start Receiving Matches" -> **Silent Signup/Login** -> Direct Dashboard Redirect.
+     - *Note:* If the email already exists, prompt the user to sign in via the dedicated login page.
+  2. **Login:** Enter email in Sign-in page -> Receive Magic Link -> Click Magic Link -> Redirect to Dashboard.
+  3. **Dashboard:** Profile update -> Setting Preferences -> Reviewing Match History.
 - **Critical Data Flow:**
-  - **Signup/Onboarding:** User Input -> PDF Upload -> AI Parsing (Gemini) -> Zod Validation -> Supabase DB Storage.
+  - **Signup/Onboarding:** PDF Upload -> AI Parsing (Gemini 2.5) -> Zod Validation -> **Silent Account Creation** -> Supabase DB Storage.
   - **Matching Logic:** Only jobs with a **Match Score > 70%** should be delivered to the user.
 
 ## 3. Scrum & Workflow Instructions

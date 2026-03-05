@@ -2,11 +2,9 @@
 
 import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { ExtractionResults } from "@/components/features/onboarding/extraction-results";
 import { ScanLine } from "@/components/features/ScanLine";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { CheckCircle2, FileText, UploadCloud } from "lucide-react";
+import { CheckCircle2, FileText } from "lucide-react";
 import { ResumeParseResult } from "@/lib/validations/resume";
 
 export default function OnboardingPage() {
@@ -16,8 +14,6 @@ export default function OnboardingPage() {
   const [parsed, setParsed] = useState(false);
   const [parsedData, setParsedData] = useState<ResumeParseResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(false);
 
   const handleFile = async (file: File) => {
     if (file.type !== "application/pdf") {
@@ -68,13 +64,9 @@ export default function OnboardingPage() {
     if (file) handleFile(file);
   };
 
-  const handleContinue = () => {
-    if (!email) {
-      setError("Please enter your email to continue.");
-      return;
-    }
-    // Simple redirect for demo
-    router.push("/signin?email=" + encodeURIComponent(email));
+  const handleComplete = () => {
+    // After ExtractionResults sets the cookie and completes, we redirect to dashboard
+    router.push("/dashboard");
   };
 
   return (
@@ -157,86 +149,12 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Parsed Results Form */}
-        {parsed && parsedData && (
-          <div className="animate-in slide-in-from-top-4 fade-in mt-8 duration-500">
-            <div className="rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm sm:p-8">
-              <div className="mb-6 font-mono text-[11px] font-bold tracking-[1.5px] text-[#94a3b8]">
-                AI EXTRACTION RESULTS
-              </div>
-
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="targetRole"
-                    className="text-xs font-semibold text-[#475569]"
-                  >
-                    Target Role
-                  </Label>
-                  <Input
-                    id="targetRole"
-                    defaultValue={parsedData.targetRole}
-                    className="h-11 bg-[#f8fafc]"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-xs font-semibold text-[#475569]">
-                    Detected Skills
-                  </Label>
-                  <div className="flex flex-wrap gap-2">
-                    {parsedData.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="rounded-md border border-[#0ea5e9]/20 bg-[#0ea5e9]/10 px-2.5 py-1 text-xs font-medium text-[#0ea5e9]"
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="my-6 h-px w-full bg-[#e2e8f0]" />
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-xs font-semibold text-[#475569]"
-                  >
-                    Email Address
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="h-11 bg-[#f8fafc]"
-                  />
-                </div>
-
-                <Button
-                  className="h-12 w-full bg-gradient-to-r from-[#0ea5e9] to-[#10b981] text-base font-bold shadow-md transition-all hover:opacity-90 active:scale-[0.98]"
-                  onClick={handleContinue}
-                  disabled={loading}
-                >
-                  {loading
-                    ? "Preparing matches..."
-                    : "Start Receiving Matches →"}
-                </Button>
-
-                <p className="text-center text-sm text-[#94a3b8]">
-                  Already have an account?{" "}
-                  <button
-                    onClick={() => router.push("/signin")}
-                    className="font-semibold text-[#0ea5e9] hover:underline"
-                  >
-                    Sign in here
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
+        {/* Parsed Results Component */}
+        {parsed && (
+          <ExtractionResults
+            parsedData={parsedData}
+            onComplete={handleComplete}
+          />
         )}
       </div>
     </div>
