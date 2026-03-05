@@ -20,8 +20,10 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-04 | `6cebb738` | Playwright E2E Verification | Removed compiled `e2e/*.js` artifacts from types compiler and successfully executed full Playwright test suite. All tests passing. | ✅ Complete |
 | 2026-03-04 | `6cebb738` | Cross-Device Profile Saving (Issue #10) | Implemented `pending_profiles` table, `POST /api/profile/pending` anonymous drop-box route, and integrated syncing logic into `auth/callback`. Tests updated and all CI gates passing (100% coverage on new APIs). | ✅ Complete |
 | 2026-03-04 | `6cebb738` | Fix PDF Parsing 500 Error | Resolved `DOMMatrix is not defined` crashes in `/api/resume/parse` by migrating entirely from the bugged `pdf-parse` library to `pdf2json`. Re-wrote Vitest assertions against true PDF binary arrays for 100% stable integration verification. | ✅ Complete |
-
 | 2026-03-04 | `b0d47e15` | Happy Path Testing & Matching Logic | Implemented core matching logic with 70% threshold; Added unit tests for matching and parsing API; Extended E2E flow to Dashboard with A11y checks; Verified 85.91% coverage. | ✅ Complete |
+| 2026-03-05 | `27ea6fb6` | Happy Path Documentation Sync | Updated `.antigravityrules` and `PRD` to align with "Silent Signup" and direct Dashboard redirect flow; Defined discrete Magic Link login path. | ✅ Complete |
+| 2026-03-05 | `27ea6fb6` | Gemini API Fix & Onboarding UI Refinement | Fixed 404 error by switching to `gemini-2.5-flash`; Refactored `ExtractionResults` to call `/api/profile/pending` and set `sb-mock-user` cookie; Simplified UI by removing "Years of Experience" field. | ✅ Complete |
+| 2026-03-05 | `7a81b010` | Fix Onboarding E2E & Unit Test Failures | Implemented missing `POST /api/profile/pending` and `sb-mock-user` cookie in `ExtractionResults`; Refactored `OnboardingPage` to use the component; Fixed Playwright absolute paths and ES module scope issues. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
@@ -36,9 +38,8 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - **Decision:** Use Next.js 15 (App Router) for a unified full-stack environment.
 - **Rationale:** Simplifies type sharing and deployment while leveraging modern React features (RSC, Actions).
 
-### 4. Cross-Device Onboarding Authentication
-- **Decision:** Use a server-side `pending_profiles` table to store unauthenticated resume parses during Magic Link login, instead of `localStorage`.
-- **Rationale:** Users frequently upload resumes on desktop but open their Magic Link emails on mobile devices. A database-backed anonymous drop-box keyed by email ensures the profile data is preserved and securely migrated to the main `profiles` table upon successful login, regardless of the verifying device. RLS completely restricts client access; only edge functions using Service Role Keys can migrate the data.
+- **Decision:** Use a server-side `pending_profiles` table for anonymous resume storage, but implement a **"Silent Signup"** flow for prototypes to avoid interrupting the user experience with an mandatory activation step.
+- **Rationale:** While Magic Link is the sole auth method, the prototype should allow immediate Dashboard access via `sb-mock-user` cookie bypass after parsing. Permanent profile creation can happen in the background via `auth.admin.createUser` or similar service-role logic to ensure data is preserved across devices without requiring the user to leave the app and check their email immediately for "first-run" activation. Magic Link remains the standard for subsequent "Sign-in" sessions.
 
 ## Project Roadmap Status
 
