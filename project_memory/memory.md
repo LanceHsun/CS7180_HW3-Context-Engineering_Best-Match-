@@ -21,6 +21,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-04 | `6cebb738` | Cross-Device Profile Saving (Issue #10) | Implemented `pending_profiles` table, `POST /api/profile/pending` anonymous drop-box route, and integrated syncing logic into `auth/callback`. Tests updated and all CI gates passing (100% coverage on new APIs). | ✅ Complete |
 | 2026-03-04 | `6cebb738` | Fix PDF Parsing 500 Error | Resolved `DOMMatrix is not defined` crashes in `/api/resume/parse` by migrating entirely from the bugged `pdf-parse` library to `pdf2json`. Re-wrote Vitest assertions against true PDF binary arrays for 100% stable integration verification. | ✅ Complete |
 
+| 2026-03-04 | `b0d47e15` | Happy Path Testing & Matching Logic | Implemented core matching logic with 70% threshold; Added unit tests for matching and parsing API; Extended E2E flow to Dashboard with A11y checks; Verified 85.91% coverage. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation

@@ -72,7 +72,12 @@ describe("POST /api/resume/parse", () => {
   });
 
   it("returns 200 and parsed data on success", async () => {
-    // Uses the global pdf2json mock
+    // Mock pdf-parse module dynamic import
+    vi.mock("pdf-parse", async () => ({
+      default: vi.fn().mockResolvedValue({
+        text: "Software Engineer with 5 years experience.",
+      }),
+    }));
 
     const mockGenerateContent = vi.fn().mockResolvedValue({
       response: {
