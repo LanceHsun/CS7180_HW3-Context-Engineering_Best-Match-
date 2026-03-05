@@ -86,6 +86,15 @@ test.describe("Onboarding PDF Upload Flow", () => {
       await route.fulfill({ json: { success: true } });
     });
 
+    // Mock the Supabase OTP auth endpoint so signInWithOtp succeeds in CI
+    await page.route("**/auth/v1/otp", async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({}),
+      });
+    });
+
     // Fill the email and continue
     await page.fill("input#email", "test@example.com");
     await page
@@ -94,8 +103,8 @@ test.describe("Onboarding PDF Upload Flow", () => {
 
     // Verify the API was actually called
     expect(pendingApiCalled).toBe(true);
-    // Verify redirect to dashboard (middleware redirects authenticated users)
-    await expect(page).toHaveURL(/\/dashboard/);
+    // Verify redirect to dashboard (onComplete triggers router.push)
+    await expect(page).toHaveURL(/\/dashboard/, { timeout: 10000 });
     await expect(page.locator("h1")).toContainText("Dashboard");
   });
   test("verifies basic keyboard navigation on onboarding page", async ({
