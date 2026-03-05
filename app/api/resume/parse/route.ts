@@ -43,37 +43,80 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Prompt Gemini for structured parsing
-    const model = ai.getGenerativeModel({
-      model: "gemini-2.5-flash",
-      generationConfig: {
-        responseMimeType: "application/json",
-      },
-    });
+    // 2. Prompt Gemini for structured parsing with fallback
+    const MODELS_TO_TRY = [
+      "gemini-2.0-flash",
+      "gemini-2.0-flash-lite",
+      "gemini-2.5-flash",
+      "gemini-2.5-pro",
+      "gemini-flash-latest",
+    ];
 
-    const prompt = `
-      You are an expert technical recruiter and resume parser.
-      Analyze the following resume text and extract the candidate's primary target role and their key skills (hard and soft).
-      Calculate their overall years of professional experience if possible.
-      
-      Respond STRICTLY with a JSON object matching this schema:
-      {
-        "targetRole": "string (the primary job title)",
-        "skills": ["string", "string"],
-        "yearsOfExperience": number (optional)
+    let lastError: any = null;
+    let responseText = "";
+    let usedModel = "";
+
+    for (const modelName of MODELS_TO_TRY) {
+      try {
+        console.log(`🤖 Attempting parse with model: ${modelName}`);
+        const model = ai.getGenerativeModel({
+          model: modelName,
+          generationConfig: {
+            responseMimeType: "application/json",
+          },
+        });
+
+        const prompt = `
+          You are an expert technical recruiter and resume parser.
+          Analyze the following resume text and extract the candidate's primary target role and their key skills (hard and soft).
+          Calculate their overall years of professional experience if possible.
+          
+          Respond STRICTLY with a JSON object matching this schema:
+          {
+            "targetRole": "string (the primary job title)",
+            "skills": ["string", "string"],
+            "yearsOfExperience": number (optional)
+          }
+
+          Resume Text:
+          ---
+          ${text.substring(0, 15000)} // Protect against massive inputs
+          ---
+        `;
+
+        const result = await model.generateContent(prompt);
+        responseText = result.response.text();
+        usedModel = modelName;
+
+        if (responseText) {
+          console.log(`✅ Successfully parsed with ${modelName}`);
+          break; // Exit loop on success
+        }
+      } catch (error: any) {
+        lastError = error;
+        const errorMsg = error.message || "";
+        const isQuotaError =
+          errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota");
+        const isNotFoundError =
+          errorMsg.includes("404") ||
+          errorMsg.toLowerCase().includes("not found");
+
+        if (isQuotaError || isNotFoundError) {
+          console.warn(
+            `⚠️ Model ${modelName} failed (${isQuotaError ? "Quota" : "Not Found"}). Trying next...`
+          );
+          continue;
+        }
+
+        // If it's another kind of error, throw it immediately
+        throw error;
       }
-
-      Resume Text:
-      ---
-      ${text.substring(0, 15000)} // Protect against massive inputs
-      ---
-    `;
-
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    }
 
     if (!responseText) {
-      throw new Error("Failed to get response from Gemini");
+      throw new Error(
+        lastError?.message || "Failed to get response from any Gemini model"
+      );
     }
 
     // 3. Validate Gemini output with Zod

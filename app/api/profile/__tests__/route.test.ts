@@ -73,12 +73,15 @@ describe("Profile APIs", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
 
-      expect(mockUpsert).toHaveBeenCalledWith({
-        email: "test@example.com",
-        target_role: "Developer",
-        skills: ["React", "Typescript"],
-        experience_level: "mid",
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        {
+          email: "test@example.com",
+          target_role: "Developer",
+          skills: ["React", "Typescript"],
+          experience_level: "mid",
+        },
+        { onConflict: "email" }
+      );
     });
 
     it("should return 500 if the pending_profiles upsert fails", async () => {
@@ -152,12 +155,15 @@ describe("Profile APIs", () => {
       const res: any = await POST(req);
       expect(res.status).toBe(200);
 
-      expect(mockUpsert).toHaveBeenCalledWith({
-        user_id: "user-123",
-        target_role: "Senior Engineer",
-        skills: ["Go", "AWS"],
-        experience_level: "senior",
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        {
+          user_id: "user-123",
+          target_role: "Senior Engineer",
+          skills: ["Go", "AWS"],
+          experience_level: "senior",
+        },
+        { onConflict: "user_id" }
+      );
     });
 
     it("should return 400 for structural invalid data", async () => {

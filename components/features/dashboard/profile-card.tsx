@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ResumeUpdateModal } from "./resume-update-modal";
 
 interface Profile {
   id: string;
@@ -23,7 +24,7 @@ export function ProfileCard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const supabase = createClient();
 
   const fetchProfile = async () => {
@@ -56,55 +57,11 @@ export function ProfileCard() {
   }, [user, isUserLoading]);
 
   const handleUpdateResumeClick = () => {
-    fileInputRef.current?.click();
+    setIsModalOpen(true);
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-      setUploadError("Please upload a PDF file.");
-      return;
-    }
-
-    setIsUpdating(true);
-    setUploadError(null);
-
-    try {
-      // 1. Parse Resume
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const parseRes = await fetch("/api/resume/parse", {
-        method: "POST",
-        body: formData,
-      });
-
-      const parseData = await parseRes.json();
-      if (!parseRes.ok)
-        throw new Error(parseData.error || "Failed to parse resume");
-
-      // 2. Update Profile
-      const updateRes = await fetch("/api/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(parseData.data),
-      });
-
-      const updateData = await updateRes.json();
-      if (!updateRes.ok)
-        throw new Error(updateData.error || "Failed to update profile");
-
-      // 3. Refresh Profile Data
-      await fetchProfile();
-    } catch (err: any) {
-      console.error("Update error:", err);
-      setUploadError(err.message || "Failed to update resume.");
-    } finally {
-      setIsUpdating(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
+  const handleUpdateSuccess = async () => {
+    await fetchProfile();
   };
 
   if (isLoading || isUserLoading) {
@@ -146,12 +103,10 @@ export function ProfileCard() {
 
   return (
     <Card className="rounded-[16px] border border-slate-200 bg-white p-6 shadow-sm">
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept=".pdf"
-        className="hidden"
+      <ResumeUpdateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUpdateSuccess={handleUpdateSuccess}
       />
 
       <div className="mb-5 flex items-center justify-between">
