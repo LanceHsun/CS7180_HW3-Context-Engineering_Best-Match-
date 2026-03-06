@@ -1,4 +1,5 @@
 import { ProfileCard } from "@/components/features/dashboard/profile-card";
+import { MatchHistory } from "@/components/features/dashboard/match-history";
 import { PreferencesCard } from "@/components/features/dashboard/preferences-card";
 
 export default function DashboardPage() {
@@ -17,6 +18,8 @@ export default function DashboardPage() {
         <ProfileCard />
         <PreferencesCard />
       </div>
+
+      <MatchHistory />
     </div>
   );
 }
