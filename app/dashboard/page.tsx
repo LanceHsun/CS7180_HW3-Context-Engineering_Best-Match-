@@ -1,4 +1,5 @@
 import { ProfileCard } from "@/components/features/dashboard/profile-card";
+import { PreferencesCard } from "@/components/features/dashboard/preferences-card";
 
 export default function DashboardPage() {
   return (
@@ -14,15 +15,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         <ProfileCard />
-        {/* Placeholder for Preferences Card */}
-        <div className="bg-card rounded-[16px] border border-slate-200 p-6 shadow-sm">
-          <div className="text-muted-foreground mb-4 font-mono text-[11px] font-bold tracking-[1.5px] uppercase">
-            PREFERENCES
-          </div>
-          <p className="text-muted-foreground text-sm italic">
-            Coming soon: Notification and location settings.
-          </p>
-        </div>
+        <PreferencesCard />
       </div>
     </div>
   );
