@@ -1,4 +1,5 @@
 import { ProfileCard } from "@/components/features/dashboard/profile-card";
+import { MatchHistory } from "@/components/features/dashboard/match-history";
 
 export default function DashboardPage() {
   return (
@@ -24,6 +25,8 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
+
+      <MatchHistory />
     </div>
   );
 }
