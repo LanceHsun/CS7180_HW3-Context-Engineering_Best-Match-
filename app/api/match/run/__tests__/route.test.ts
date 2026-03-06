@@ -149,4 +149,93 @@ describe("POST /api/match/run", () => {
     const res = await POST(req as any);
     expect(res.status).toBe(400);
   });
+
+  it("returns success even if match persistence fails", async () => {
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: mockUserId } },
+      error: null,
+    });
+
+    mockBuilder.single.mockResolvedValueOnce({
+      data: mockProfileData,
+      error: null,
+    });
+    // Mock insert failure
+    mockBuilder.insert.mockResolvedValue({
+      error: { message: "DB Error" },
+    });
+
+    vi.mocked(runMatchBatch).mockResolvedValue({
+      matches: [{ job: mockJobs[0], score: 85, reasoning: "Good" }],
+      filtered_count: 0,
+    });
+
+    const req = new Request("http://localhost/api/match/run", {
+      method: "POST",
+      body: JSON.stringify({ profileId: mockProfileId, jobs: mockJobs }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(200);
+  });
+
+  it("returns 500 on internal server error", async () => {
+    mockSupabase.auth.getUser.mockRejectedValue(new Error("Unexpected error"));
+
+    const req = new Request("http://localhost/api/match/run", {
+      method: "POST",
+      body: JSON.stringify({ profileId: mockProfileId, jobs: mockJobs }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(500);
+  });
+
+  it("handles missing profile fields with defaults", async () => {
+    mockSupabase.auth.getUser.mockResolvedValue({
+      data: { user: { id: mockUserId, email: null } },
+      error: null,
+    });
+
+    mockBuilder.single.mockResolvedValueOnce({
+      data: { id: mockProfileId, user_id: mockUserId }, // Missing name, skills, etc.
+      error: null,
+    });
+
+    vi.mocked(runMatchBatch).mockResolvedValue({
+      matches: [],
+      filtered_count: 0,
+    });
+
+    const req = new Request("http://localhost/api/match/run", {
+      method: "POST",
+      body: JSON.stringify({ profileId: mockProfileId, jobs: mockJobs }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(200);
+    // Verify runMatchBatch was called with "User" default
+    expect(runMatchBatch).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "User", skills: [] }),
+      expect.any(Array)
+    );
+  });
+
+  it("handles error without message during matching", async () => {
+    mockSupabase.auth.getUser.mockRejectedValue(
+      "String error instead of Error object"
+    );
+
+    const req = new Request("http://localhost/api/match/run", {
+      method: "POST",
+      body: JSON.stringify({ profileId: mockProfileId, jobs: mockJobs }),
+    });
+
+    const res = await POST(req as any);
+    expect(res.status).toBe(500);
+    const body = await res.json();
+    expect(body.error.message).toBe(
+      "An unexpected error occurred during matching"
+    );
+  });
 });

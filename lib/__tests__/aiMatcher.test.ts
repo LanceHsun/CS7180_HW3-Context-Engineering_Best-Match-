@@ -60,6 +60,22 @@ describe("aiMatcher", () => {
       expect(mockModel.generateContent).toHaveBeenCalled();
     });
 
+    it("handles missing targetRole in prompt correctly", async () => {
+      const mockResult = {
+        response: {
+          text: () => JSON.stringify({ score: 70, reasoning: "Ok" }),
+        },
+      };
+      mockModel.generateContent.mockResolvedValue(mockResult as any);
+
+      const profileWithoutRole = { ...mockProfile, targetRole: undefined };
+      await scoreJobMatch(profileWithoutRole as any, mockJob);
+
+      const prompt = vi.mocked(mockModel.generateContent).mock
+        .calls[0][0] as string;
+      expect(prompt).toContain("Target Role: Not specified");
+    });
+
     it("handles non-JSON response from AI gracefully", async () => {
       const mockResponseText = "This is not JSON";
 
@@ -122,6 +138,51 @@ describe("aiMatcher", () => {
 
       expect(result.matches).toHaveLength(0);
       expect(result.filtered_count).toBe(1);
+    });
+
+    it("sorts matches by score descending", async () => {
+      const jobs: NormalizedJob[] = [
+        { ...mockJob, title: "Lower Score" },
+        { ...mockJob, title: "Higher Score" },
+      ];
+
+      mockModel.generateContent
+        .mockResolvedValueOnce({
+          response: {
+            text: () => JSON.stringify({ score: 80, reasoning: "Ok" }),
+          },
+        } as any)
+        .mockResolvedValueOnce({
+          response: {
+            text: () => JSON.stringify({ score: 95, reasoning: "Great" }),
+          },
+        } as any);
+
+      const result = await runMatchBatch(mockProfile, jobs);
+
+      expect(result.matches).toHaveLength(2);
+      expect(result.matches[0].score).toBe(95);
+      expect(result.matches[1].score).toBe(80);
+    });
+
+    it("handles errors in batch and continues processing", async () => {
+      const jobs: NormalizedJob[] = [
+        { ...mockJob, title: "Errored Job" },
+        { ...mockJob, title: "Successful Job" },
+      ];
+
+      mockModel.generateContent
+        .mockRejectedValueOnce(new Error("AI Failure"))
+        .mockResolvedValueOnce({
+          response: {
+            text: () => JSON.stringify({ score: 90, reasoning: "Good" }),
+          },
+        } as any);
+
+      const result = await runMatchBatch(mockProfile, jobs);
+
+      expect(result.matches).toHaveLength(1);
+      expect(result.matches[0].score).toBe(90);
     });
   });
 });
