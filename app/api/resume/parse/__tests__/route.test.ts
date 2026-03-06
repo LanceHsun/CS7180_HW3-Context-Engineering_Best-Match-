@@ -130,4 +130,245 @@ describe("POST /api/resume/parse", () => {
     expect(json.data.targetRole).toBe("Software Engineer");
     expect(json.data.skills).toEqual(["React", "TypeScript"]);
   });
+
+  it("handles model fallback on quota error", async () => {
+    const mockGenerateContent = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("429 Quota Exceeded"))
+      .mockResolvedValueOnce({
+        response: {
+          text: () =>
+            JSON.stringify({
+              targetRole: "Product Manager",
+              skills: ["Strategy", "Roadmapping"],
+            }),
+        },
+      });
+
+    (ai.getGenerativeModel as any).mockReturnValue({
+      generateContent: mockGenerateContent,
+    });
+
+    (supabaseServer.createClient as any).mockResolvedValue({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("dummy pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(json.data.targetRole).toBe("Product Manager");
+    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws error if all models fail", async () => {
+    const mockGenerateContent = vi
+      .fn()
+      .mockRejectedValue(new Error("429 Quota Exceeded"));
+
+    (ai.getGenerativeModel as any).mockReturnValue({
+      generateContent: mockGenerateContent,
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("dummy pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    const json = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(json.error).toContain("429 Quota Exceeded");
+  });
+
+  it("returns 500 if AI returns invalid JSON", async () => {
+    const mockGenerateContent = vi.fn().mockResolvedValue({
+      response: {
+        text: () => "Not valid JSON",
+      },
+    });
+
+    (ai.getGenerativeModel as any).mockReturnValue({
+      generateContent: mockGenerateContent,
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("dummy pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    const json = await response.json();
+
+    expect(response.status).toBe(500);
+    expect(json.error).toBe("Invalid AI response format");
+  });
+
+  it("updates user profile if authenticated", async () => {
+    const mockGenerateContent = vi.fn().mockResolvedValue({
+      response: {
+        text: () =>
+          JSON.stringify({
+            targetRole: "Designer",
+            skills: ["Figma"],
+          }),
+      },
+    });
+
+    (ai.getGenerativeModel as any).mockReturnValue({
+      generateContent: mockGenerateContent,
+    });
+
+    const mockUpdate = vi.fn().mockReturnValue({ eq: vi.fn() });
+    const mockSupabase = {
+      auth: {
+        getUser: vi
+          .fn()
+          .mockResolvedValue({ data: { user: { id: "user-123" } } }),
+      },
+      from: vi.fn().mockReturnValue({ update: mockUpdate }),
+    };
+    (supabaseServer.createClient as any).mockResolvedValue(mockSupabase);
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("dummy pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    expect(response.status).toBe(200);
+    expect(mockSupabase.from).toHaveBeenCalledWith("profiles");
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skills: ["Figma"],
+      })
+    );
+  });
+
+  it("handles PDF parsing error", async () => {
+    const PDFParserModule = await import("pdf2json");
+    const MockPDFParser = (PDFParserModule as any).default;
+
+    // Override the mock to trigger an error
+    const originalOn = MockPDFParser.prototype.on;
+    MockPDFParser.prototype.on = vi.fn().mockImplementation(function (
+      this: any,
+      event,
+      callback
+    ) {
+      if (event === "pdfParser_dataError") {
+        callback({ parserError: { message: "Parsing failed" } });
+      }
+      return this;
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("bad pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    const json = await response.json();
+    expect(response.status).toBe(500);
+    expect(json.error).toBe("Parsing failed");
+
+    // Restore mock
+    MockPDFParser.prototype.on = originalOn;
+  });
+
+  it("handles empty text extraction", async () => {
+    const PDFParserModule = await import("pdf2json");
+    const MockPDFParser = (PDFParserModule as any).default;
+    const originalGetText = MockPDFParser.prototype.getRawTextContent;
+    MockPDFParser.prototype.getRawTextContent = vi.fn().mockReturnValue("");
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("empty pdf")], "test.pdf", {
+        type: "application/pdf",
+      })
+    );
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    expect(response.status).toBe(400);
+    expect((await response.json()).error).toBe(
+      "Could not extract text from PDF"
+    );
+
+    MockPDFParser.prototype.getRawTextContent = originalGetText;
+  });
+
+  it("rethrows non-retryable model errors", async () => {
+    const mockGenerateContent = vi
+      .fn()
+      .mockRejectedValue(new Error("500 Internal AI Error"));
+
+    (ai.getGenerativeModel as any).mockReturnValue({
+      generateContent: mockGenerateContent,
+    });
+
+    const formData = new FormData();
+    formData.append(
+      "file",
+      new File([Buffer.from("pdf")], "test.pdf", { type: "application/pdf" })
+    );
+    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
+      method: "POST",
+      body: formData,
+    });
+
+    const response = await POST(mockRequest);
+    expect(response.status).toBe(500);
+    expect((await response.json()).error).toBe("500 Internal AI Error");
+  });
 });
