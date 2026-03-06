@@ -10,18 +10,49 @@ import { ResumeParseResult } from "@/lib/validations/resume";
 
 interface ResumeDropzoneProps {
   onSuccess?: (data: ResumeParseResult & { fileName: string }) => void;
+  onFileSelected?: (file: File) => void;
+  status?: "idle" | "scanning" | "success" | "error";
+  fileName?: string;
+  error?: string;
 }
 
-export function ResumeDropzone({ onSuccess }: ResumeDropzoneProps) {
+export function ResumeDropzone({
+  onSuccess,
+  onFileSelected,
+  status: externalStatus,
+  fileName: externalFileName,
+  error: externalError,
+}: ResumeDropzoneProps) {
   const [dragOver, setDragOver] = useState(false);
-  const [status, setStatus] = useState<
+  const [internalStatus, setInternalStatus] = useState<
     "idle" | "scanning" | "success" | "error"
   >("idle");
-  const [errorHeader, setErrorHeader] = useState("");
-  const [fileName, setFileName] = useState("");
+  const [internalErrorHeader, setInternalErrorHeader] = useState("");
+  const [internalFileName, setInternalFileName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const status =
+    externalStatus && externalStatus !== "idle"
+      ? externalStatus
+      : internalStatus;
+  const fileName =
+    externalStatus && externalStatus !== "idle"
+      ? externalFileName || ""
+      : internalFileName;
+  const errorHeader =
+    externalStatus && externalStatus !== "idle"
+      ? externalError || ""
+      : internalErrorHeader;
+
+  const setStatus = setInternalStatus;
+  const setErrorHeader = setInternalErrorHeader;
+  const setFileName = setInternalFileName;
+
   const handleFile = async (file: File) => {
+    if (onFileSelected) {
+      onFileSelected(file);
+      return;
+    }
     setStatus("scanning");
     setFileName(file.name);
 

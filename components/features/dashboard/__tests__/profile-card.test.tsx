@@ -93,7 +93,7 @@ describe("ProfileCard Component (Revised)", () => {
     expect(screen.getByText("Update Resume")).toBeDefined();
   });
 
-  it("triggers file upload and profile update when a new resume is selected", async () => {
+  it("triggers file upload and profile update when a new resume is selected and confirmed", async () => {
     (useUser as any).mockReturnValue({
       user: mockUser,
       isLoading: false,
@@ -121,19 +121,32 @@ describe("ProfileCard Component (Revised)", () => {
 
     await waitFor(() => screen.getByText("Update Resume"));
 
-    const updateButton = screen.getByText("Update Resume");
+    // 1. Click Update Resume to open modal
+    const updateBtn = screen.getByText("Update Resume");
+    fireEvent.click(updateBtn);
+
+    // 2. Wait for modal content
+    await waitFor(() => screen.getByText("Confirm Upload"));
+
     const file = new File(["dummy content"], "resume.pdf", {
       type: "application/pdf",
     });
+    // The input is hidden but should be in the DOM
     const fileInput = document.querySelector(
       'input[type="file"]'
     ) as HTMLInputElement;
 
-    // Simulate file selection
+    // 3. Simulate file selection in dropzone
     fireEvent.change(fileInput, { target: { files: [file] } });
 
-    // Should show updating state
-    expect(screen.getByText("Updating...")).toBeDefined();
+    // 4. Click Confirm Upload
+    const confirmBtn = screen.getByText("Confirm Upload");
+    fireEvent.click(confirmBtn);
+
+    // Should show updating state on the button
+    await waitFor(() => {
+      expect(screen.getByText("Updating...")).toBeDefined();
+    });
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledTimes(2);
@@ -141,7 +154,7 @@ describe("ProfileCard Component (Revised)", () => {
     });
   });
 
-  it("handles non-PDF file upload error", async () => {
+  it("handles non-PDF file upload error (inside modal)", async () => {
     (useUser as any).mockReturnValue({
       user: mockUser,
       isLoading: false,
@@ -156,6 +169,10 @@ describe("ProfileCard Component (Revised)", () => {
 
     await waitFor(() => screen.getByText("Update Resume"));
 
+    // 1. Click Update Resume
+    fireEvent.click(screen.getByText("Update Resume"));
+    await waitFor(() => screen.getByText("Cancel"));
+
     const file = new File(["dummy content"], "resume.txt", {
       type: "text/plain",
     });
@@ -166,7 +183,7 @@ describe("ProfileCard Component (Revised)", () => {
     fireEvent.change(fileInput, { target: { files: [file] } });
 
     await waitFor(() => {
-      expect(screen.getByText("Please upload a PDF file.")).toBeDefined();
+      expect(screen.getByText("PDF only")).toBeDefined();
     });
   });
 });

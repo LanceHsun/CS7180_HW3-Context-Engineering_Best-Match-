@@ -1,8 +1,8 @@
 import {
-    AdzunaJobSchema,
-    NormalizedJob,
-    NormalizedJobSchema,
-    JobFetchParams,
+  AdzunaJobSchema,
+  NormalizedJob,
+  NormalizedJobSchema,
+  JobFetchParams,
 } from "./validations/jobListing";
 import { ApiError } from "./api/errorHandler";
 
@@ -11,27 +11,27 @@ import { ApiError } from "./api/errorHandler";
  */
 export let _backoffMultiplier = 1;
 export function setBackoffMultiplier(val: number) {
-    _backoffMultiplier = val;
+  _backoffMultiplier = val;
 }
 
 // --- Cache ---
 interface CacheEntry {
-    data: NormalizedJob[];
-    timestamp: number;
+  data: NormalizedJob[];
+  timestamp: number;
 }
 
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 const cache = new Map<string, CacheEntry>();
 
 function getCacheKey(role: string, location?: string): string {
-    return `${role.toLowerCase()}:${(location || "").toLowerCase()}`;
+  return `${role.toLowerCase()}:${(location || "").toLowerCase()}`;
 }
 
 /**
  * Clears the in-memory job cache. Exposed for testing.
  */
 export function clearJobCache(): void {
-    cache.clear();
+  cache.clear();
 }
 
 // --- Adzuna API ---
@@ -44,15 +44,15 @@ const INITIAL_BACKOFF_MS = 1000;
  * @issue 15
  */
 export function normalizeAdzunaJob(raw: unknown): NormalizedJob {
-    const parsed = AdzunaJobSchema.parse(raw);
-    const normalized = {
-        title: parsed.title,
-        company: parsed.company.display_name,
-        description: parsed.description,
-        apply_url: parsed.redirect_url,
-        location: parsed.location.display_name,
-    };
-    return NormalizedJobSchema.parse(normalized);
+  const parsed = AdzunaJobSchema.parse(raw);
+  const normalized = {
+    title: parsed.title,
+    company: parsed.company.display_name,
+    description: parsed.description,
+    apply_url: parsed.redirect_url,
+    location: parsed.location.display_name,
+  };
+  return NormalizedJobSchema.parse(normalized);
 }
 
 /**
@@ -63,93 +63,95 @@ export function normalizeAdzunaJob(raw: unknown): NormalizedJob {
  * @issue 15
  */
 export async function fetchFromAdzuna(
-    role: string,
-    location?: string
+  role: string,
+  location?: string
 ): Promise<NormalizedJob[]> {
-    const appId = process.env.ADZUNA_APP_ID;
-    const appKey = process.env.ADZUNA_APP_KEY;
+  const appId = process.env.ADZUNA_APP_ID;
+  const appKey = process.env.ADZUNA_APP_KEY;
 
-    if (!appId || !appKey) {
-        throw new ApiError(
-            "Adzuna API credentials are not configured.",
-            500,
-            "CONFIG_ERROR"
-        );
-    }
-
-    // Adzuna uses country code in the URL; default to "us"
-    const country = "us";
-    const params = new URLSearchParams({
-        app_id: appId,
-        app_key: appKey,
-        results_per_page: "20",
-        what: role,
-    });
-
-    if (location) {
-        params.set("where", location);
-    }
-
-    const url = `${ADZUNA_BASE_URL}/${country}/search/1?${params.toString()}`;
-
-    let lastError: Error | null = null;
-
-    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-        try {
-            const response = await fetch(url);
-
-            // Success — parse and normalize
-            if (response.ok) {
-                const json = await response.json();
-                const results = json.results || [];
-                return results
-                    .map((item: unknown) => {
-                        try {
-                            return normalizeAdzunaJob(item);
-                        } catch {
-                            // Skip malformed entries
-                            return null;
-                        }
-                    })
-                    .filter(Boolean) as NormalizedJob[];
-            }
-
-            // Retryable errors: 429 or 5xx
-            if (response.status === 429 || response.status >= 500) {
-                const retryAfter = response.headers.get("Retry-After");
-                const backoffMs = retryAfter
-                    ? parseInt(retryAfter, 10) * 1000
-                    : INITIAL_BACKOFF_MS * Math.pow(2, attempt);
-
-                lastError = new Error(
-                    `Adzuna API error ${response.status}: ${response.statusText}`
-                );
-                await delay(backoffMs * _backoffMultiplier);
-                continue;
-            }
-
-            // Non-retryable client errors (4xx except 429)
-            const errorBody = await response.text();
-            throw new ApiError(
-                `Adzuna API error: ${response.status} ${errorBody}`,
-                response.status,
-                "EXTERNAL_API_ERROR"
-            );
-        } catch (error) {
-            if (error instanceof ApiError) throw error;
-            lastError = error instanceof Error ? error : new Error(String(error));
-
-            if (attempt < MAX_RETRIES - 1) {
-                await delay(INITIAL_BACKOFF_MS * Math.pow(2, attempt) * _backoffMultiplier);
-            }
-        }
-    }
-
+  if (!appId || !appKey) {
     throw new ApiError(
-        `Adzuna API failed after ${MAX_RETRIES} attempts: ${lastError?.message}`,
-        502,
-        "EXTERNAL_API_EXHAUSTED"
+      "Adzuna API credentials are not configured.",
+      500,
+      "CONFIG_ERROR"
     );
+  }
+
+  // Adzuna uses country code in the URL; default to "us"
+  const country = "us";
+  const params = new URLSearchParams({
+    app_id: appId,
+    app_key: appKey,
+    results_per_page: "20",
+    what: role,
+  });
+
+  if (location) {
+    params.set("where", location);
+  }
+
+  const url = `${ADZUNA_BASE_URL}/${country}/search/1?${params.toString()}`;
+
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetch(url);
+
+      // Success — parse and normalize
+      if (response.ok) {
+        const json = await response.json();
+        const results = json.results || [];
+        return results
+          .map((item: unknown) => {
+            try {
+              return normalizeAdzunaJob(item);
+            } catch {
+              // Skip malformed entries
+              return null;
+            }
+          })
+          .filter(Boolean) as NormalizedJob[];
+      }
+
+      // Retryable errors: 429 or 5xx
+      if (response.status === 429 || response.status >= 500) {
+        const retryAfter = response.headers.get("Retry-After");
+        const backoffMs = retryAfter
+          ? parseInt(retryAfter, 10) * 1000
+          : INITIAL_BACKOFF_MS * Math.pow(2, attempt);
+
+        lastError = new Error(
+          `Adzuna API error ${response.status}: ${response.statusText}`
+        );
+        await delay(backoffMs * _backoffMultiplier);
+        continue;
+      }
+
+      // Non-retryable client errors (4xx except 429)
+      const errorBody = await response.text();
+      throw new ApiError(
+        `Adzuna API error: ${response.status} ${errorBody}`,
+        response.status,
+        "EXTERNAL_API_ERROR"
+      );
+    } catch (error) {
+      if (error instanceof ApiError) throw error;
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (attempt < MAX_RETRIES - 1) {
+        await delay(
+          INITIAL_BACKOFF_MS * Math.pow(2, attempt) * _backoffMultiplier
+        );
+      }
+    }
+  }
+
+  throw new ApiError(
+    `Adzuna API failed after ${MAX_RETRIES} attempts: ${lastError?.message}`,
+    502,
+    "EXTERNAL_API_EXHAUSTED"
+  );
 }
 
 /**
@@ -158,27 +160,27 @@ export async function fetchFromAdzuna(
  * @issue 15
  */
 export async function fetchJobs(
-    params: JobFetchParams
+  params: JobFetchParams
 ): Promise<NormalizedJob[]> {
-    const { role, location } = params;
-    const key = getCacheKey(role, location);
+  const { role, location } = params;
+  const key = getCacheKey(role, location);
 
-    // Check cache
-    const cached = cache.get(key);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-        return cached.data;
-    }
+  // Check cache
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    return cached.data;
+  }
 
-    // Fetch from Adzuna
-    const jobs = await fetchFromAdzuna(role, location);
+  // Fetch from Adzuna
+  const jobs = await fetchFromAdzuna(role, location);
 
-    // Store in cache
-    cache.set(key, { data: jobs, timestamp: Date.now() });
+  // Store in cache
+  cache.set(key, { data: jobs, timestamp: Date.now() });
 
-    return jobs;
+  return jobs;
 }
 
 // --- Helpers ---
 function delay(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }

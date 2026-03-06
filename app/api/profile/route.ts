@@ -27,12 +27,15 @@ export async function POST(req: Request) {
       }
     }
 
-    const { error: upsertError } = await supabase.from("profiles").upsert({
-      user_id: user.id,
-      target_role: parsedData.targetRole,
-      skills: parsedData.skills,
-      experience_level: experienceLevel,
-    });
+    const { error: upsertError } = await supabase.from("profiles").upsert(
+      {
+        user_id: user.id,
+        target_role: parsedData.targetRole,
+        skills: parsedData.skills,
+        experience_level: experienceLevel,
+      },
+      { onConflict: "user_id" }
+    );
 
     if (upsertError) {
       console.error("Profile upsert error:", upsertError);

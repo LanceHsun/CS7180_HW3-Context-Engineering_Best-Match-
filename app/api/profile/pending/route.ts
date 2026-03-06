@@ -13,7 +13,9 @@ export async function POST(req: Request) {
     const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
     if (!supaUrl || !supaKey) {
-      console.error("Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL environment variables.");
+      console.error(
+        "Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL environment variables."
+      );
       return NextResponse.json(
         { error: "Server configuration error. Missing database keys." },
         { status: 500 }
@@ -45,12 +47,15 @@ export async function POST(req: Request) {
     }
 
     // 2. Insert into anonymous drop-box table
-    const { error } = await supabaseAdmin.from("pending_profiles").upsert({
-      email: parsedData.email,
-      target_role: parsedData.targetRole,
-      skills: parsedData.skills,
-      experience_level: experienceLevel,
-    });
+    const { error } = await supabaseAdmin.from("pending_profiles").upsert(
+      {
+        email: parsedData.email,
+        target_role: parsedData.targetRole,
+        skills: parsedData.skills,
+        experience_level: experienceLevel,
+      },
+      { onConflict: "email" }
+    );
 
     if (error) {
       console.error("Supabase pending_profile insert error:", error);
