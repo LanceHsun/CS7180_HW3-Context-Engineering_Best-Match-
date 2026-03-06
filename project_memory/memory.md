@@ -25,6 +25,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-05 | `27ea6fb6` | Gemini API Fix & Onboarding UI Refinement | Fixed 404 error by switching to `gemini-2.5-flash`; Refactored `ExtractionResults` to call `/api/profile/pending` and set `sb-mock-user` cookie; Simplified UI by removing "Years of Experience" field. | ✅ Complete |
 | 2026-03-05 | `85b1d510` | Resume Update Modal & Quota Fallback | Implemented `ResumeUpdateModal`; Refactored `ResumeDropzone`; Implemented robust multi-model fallback in `route.ts`; Fixed `onConflict` profile save error. | ✅ Complete |
 | 2026-03-05 | `bdb4f0cd` | Dashboard My Profile Card UI (Issue #11) | Implemented ProfileCard with prototype design, top 15 skills display, and direct resume upload logic. Updated dashboard to two-column layout. Verified with unit tests (>80% coverage). | ✅ Complete |
+| 2026-03-05 | `bac3a972` | Candidate Preferences Feature (Issue #14) | Implemented PreferencesCard with digest frequency toggle, location pills (add/remove), and Supabase persistence. Integrated into dashboard. Verified with unit tests (>80% coverage). | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
