@@ -1,13 +1,11 @@
 "use client";
 
 import { useUser } from "@/lib/hooks/use-user";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 /**
  * Dashboard layout with auth loading state.
- * Prevents UI flickering by showing a skeleton while auth initializes.
- * Redirects to /signin if user is not authenticated (client-side defense-in-depth).
+ * Shows a skeleton while auth initializes to prevent UI flickering (AC4).
+ * Route protection is handled server-side by middleware.
  * @issue 13
  */
 export default function DashboardLayout({
@@ -15,14 +13,7 @@ export default function DashboardLayout({
 }: {
     children: React.ReactNode;
 }) {
-    const { user, isLoading, isAuthenticated } = useUser();
-    const router = useRouter();
-
-    useEffect(() => {
-        if (!isLoading && !isAuthenticated) {
-            router.replace("/signin");
-        }
-    }, [isLoading, isAuthenticated, router]);
+    const { isLoading } = useUser();
 
     // Loading state: show skeleton while auth initializes (AC4)
     if (isLoading) {
@@ -46,11 +37,6 @@ export default function DashboardLayout({
                 </div>
             </div>
         );
-    }
-
-    // Not authenticated — redirect is happening via useEffect
-    if (!isAuthenticated) {
-        return null;
     }
 
     return <>{children}</>;

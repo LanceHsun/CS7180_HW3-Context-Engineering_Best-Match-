@@ -12,16 +12,6 @@ vi.mock("@/lib/hooks/use-user", () => ({
     useUser: () => mockUseUser(),
 }));
 
-// Mock next/navigation
-const mockReplace = vi.fn();
-vi.mock("next/navigation", () => ({
-    useRouter: () => ({
-        replace: mockReplace,
-        push: vi.fn(),
-        refresh: vi.fn(),
-    }),
-}));
-
 describe("DashboardLayout", () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -40,11 +30,11 @@ describe("DashboardLayout", () => {
             </DashboardLayout>
         );
 
-        // Skeleton should be visible
+        // Skeleton should be visible, children should not
         expect(screen.queryByTestId("child")).not.toBeInTheDocument();
     });
 
-    it("renders children when authenticated", () => {
+    it("renders children when loading is complete", () => {
         mockUseUser.mockReturnValue({
             user: { id: "1", email: "test@example.com" },
             isLoading: false,
@@ -58,22 +48,5 @@ describe("DashboardLayout", () => {
         );
 
         expect(screen.getByTestId("child")).toBeInTheDocument();
-    });
-
-    it("redirects to /signin when not authenticated", () => {
-        mockUseUser.mockReturnValue({
-            user: null,
-            isLoading: false,
-            isAuthenticated: false,
-        });
-
-        render(
-            <DashboardLayout>
-                <div data-testid="child">Dashboard Content</div>
-            </DashboardLayout>
-        );
-
-        expect(mockReplace).toHaveBeenCalledWith("/signin");
-        expect(screen.queryByTestId("child")).not.toBeInTheDocument();
     });
 });
