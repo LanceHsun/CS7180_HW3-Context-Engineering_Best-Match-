@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
 
     // 2. Prompt Gemini for structured parsing
     const model = ai.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-flash-lite",
       generationConfig: {
         responseMimeType: "application/json",
       },
