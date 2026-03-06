@@ -8,17 +8,17 @@ import { NextRequest, NextResponse } from "next/server";
  * @issue 13
  */
 export async function POST(request: NextRequest) {
-    const supabase = await createClient();
+  const supabase = await createClient();
 
-    await supabase.auth.signOut();
+  await supabase.auth.signOut();
 
-    // Build redirect URL from the request origin
-    const redirectUrl = new URL("/signin", request.url);
+  // Build redirect URL from the request origin
+  const redirectUrl = new URL("/", request.url);
 
-    const response = NextResponse.redirect(redirectUrl, { status: 302 });
+  const response = NextResponse.redirect(redirectUrl, { status: 302 });
 
-    // Clear mock user cookie (AC5)
-    response.cookies.delete("sb-mock-user");
+  // Clear mock user cookie (AC5)
+  response.cookies.delete("sb-mock-user");
 
-    return response;
+  return response;
 }

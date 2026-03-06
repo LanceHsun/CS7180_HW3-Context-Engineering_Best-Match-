@@ -1,6 +1,7 @@
 import { ResumeParseResult } from "./validations/resume";
 import { JobDescription } from "./validations/schemas";
 
+/** @deprecated Use MATCH_THRESHOLD in lib/aiMatcher.ts instead */
 export const MATCH_THRESHOLD = 0.7;
 
 /**
@@ -9,6 +10,7 @@ export const MATCH_THRESHOLD = 0.7;
  * 1. Target Role vs Job Title similarity (40%)
  * 2. Skills overlap (60%)
  * @issue 23
+ * @deprecated Use runMatchBatch or scoreJobMatch in lib/aiMatcher.ts for AI-powered matching.
  */
 export function calculateMatchScore(
   resume: ResumeParseResult,
