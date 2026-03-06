@@ -237,4 +237,26 @@ describe("Job Fetcher Module", () => {
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
   });
+
+  describe("fetchFromAdzuna network errors", () => {
+    it("handles fetch throwing a network error and retries", async () => {
+      mockFetch
+        .mockRejectedValueOnce(new TypeError("Network error"))
+        .mockResolvedValueOnce(makeAdzunaResponse([makeRawAdzunaJob()]));
+
+      const results = await fetchFromAdzuna("engineer");
+      expect(results).toHaveLength(1);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+
+    it("handles non-Error objects thrown by fetch", async () => {
+      mockFetch.mockRejectedValueOnce("string error");
+      // String error should be wrapped in Error and retried
+      mockFetch.mockResolvedValueOnce(makeAdzunaResponse([makeRawAdzunaJob()]));
+
+      const results = await fetchFromAdzuna("engineer");
+      expect(results).toHaveLength(1);
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+    });
+  });
 });
