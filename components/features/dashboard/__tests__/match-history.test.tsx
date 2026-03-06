@@ -24,7 +24,7 @@ describe("MatchHistory Component", () => {
 
   const mockMatches = [
     {
-      id: "1",
+      id: "550e8400-e29b-41d4-a716-446655440000",
       job_title: "Senior Software Engineer",
       company: "Google",
       score: 95,
@@ -32,7 +32,7 @@ describe("MatchHistory Component", () => {
       created_at: new Date().toISOString(),
     },
     {
-      id: "2",
+      id: "550e8400-e29b-41d4-a716-446655440001",
       job_title: "Product Manager",
       company: "Meta",
       score: 85,
@@ -40,7 +40,7 @@ describe("MatchHistory Component", () => {
       created_at: new Date().toISOString(),
     },
     {
-      id: "3",
+      id: "550e8400-e29b-41d4-a716-446655440002",
       job_title: "Data Scientist",
       company: "Amazon",
       score: 75,
