@@ -29,6 +29,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-05 | `bac3a972` | Candidate Preferences Feature (Issue #14) | Implemented PreferencesCard with digest frequency toggle, location pills (add/remove), and Supabase persistence. Integrated into dashboard. Verified with unit tests (>80% coverage). | ✅ Complete |
 | 2026-03-06 | `c7cadbb0` | AI Job Matching Logic (Issue #16) | Implemented `/api/match/run` with Gemini 1.5 Pro and Zod validation. Expert recruiter persona, 70% score gate, and Supabase persistence for matches. 20 new tests (100% coverage). | ✅ Complete |
 | 2026-03-06 | `c7cadbb0` | Signout Button & Layout Fix (Issue #13) | Integrated `DashboardHeader` into layout; updated signout redirect to `/`; fixed layout tests. Pushed to `feature/16-ai-matching-complete`. | ✅ Complete |
+| 2026-03-06 | `c7cadbb0` | Automated Cron Matcher (Issue #17) | Implemented `/api/cron/match` with Vercel Cron config. Added `match_runs` logging, frequency-based user filtering, idempotency guards, and per-user error isolation. Verified with 5 unit tests (100% coverage). | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
@@ -76,3 +77,5 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - [x] Resume Parsing Backend Integration (Issue #9)
 - [x] Cross-Device Profile Saving & Database Sync (Issue #10)
 - [x] Job Match Listing UI (Issue #20)
+- [x] Automated Cron Job Matching (Issue #17)
+- [ ] User Notification System (Issue #18)
