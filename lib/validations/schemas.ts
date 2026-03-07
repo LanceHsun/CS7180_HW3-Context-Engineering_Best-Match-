@@ -6,6 +6,7 @@ export const UserProfileSchema = z.object({
   email: z.email("Invalid email address"),
   skills: z.array(z.string()).default([]),
   experienceLevel: z.enum(["Entry", "Mid", "Senior", "Executive"]).optional(),
+  targetRole: z.string().optional(),
   targetLocations: z.array(z.string()).default([]),
   notificationFrequency: z.enum(["Daily", "Weekly"]).default("Weekly"),
 });
