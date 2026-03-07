@@ -3,7 +3,9 @@ import { env } from "./env";
 import { ScoredMatch } from "./validations/match";
 import { renderJobDigestHtml, renderJobDigestText } from "./emailTemplates";
 
-sgMail.setApiKey(env.SENDGRID_API_KEY);
+if (env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(env.SENDGRID_API_KEY);
+}
 
 /**
  * Sends a job digest email to a user.
@@ -15,6 +17,14 @@ export async function sendJobDigest(
   jobs: ScoredMatch[]
 ) {
   if (jobs.length === 0) return { success: true, message: "No jobs to send" };
+
+  if (!env.SENDGRID_API_KEY || !env.SENDGRID_FROM_EMAIL) {
+    console.warn("SendGrid credentials missing. Skipping email send.");
+    return {
+      success: false,
+      message: "SendGrid credentials missing",
+    };
+  }
 
   const html = renderJobDigestHtml(jobs, userName);
   const text = renderJobDigestText(jobs, userName);

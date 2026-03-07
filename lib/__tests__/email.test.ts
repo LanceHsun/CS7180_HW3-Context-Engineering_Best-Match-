@@ -58,6 +58,26 @@ describe("Email Service", () => {
     expect(sgMail.send).not.toHaveBeenCalled();
   });
 
+  it("should return success: false if SendGrid credentials are missing", async () => {
+    // Override the mock for this specific test
+    vi.mocked(sgMail.send).mockClear();
+
+    // We need to re-import or use a way to bypass the environmental check in sub-methods if possible,
+    // but here we just check our logic in sendJobDigest.
+    // Let's mock 'env' locally for this test.
+    const { env } = await import("../env");
+    const originalApiKey = env.SENDGRID_API_KEY;
+    (env as any).SENDGRID_API_KEY = undefined;
+
+    const result = await sendJobDigest("test@example.com", "John", mockJobs);
+    expect(result.success).toBe(false);
+    expect(result.message).toBe("SendGrid credentials missing");
+    expect(sgMail.send).not.toHaveBeenCalled();
+
+    // Restore
+    (env as any).SENDGRID_API_KEY = originalApiKey;
+  });
+
   it("should throw error if SendGrid fails", async () => {
     vi.mocked(sgMail.send).mockRejectedValueOnce(new Error("SendGrid Error"));
     await expect(
