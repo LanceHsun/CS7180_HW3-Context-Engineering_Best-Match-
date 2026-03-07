@@ -6,6 +6,8 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(1, "Gemini API key is required"),
   ADZUNA_APP_ID: z.string().min(1, "Adzuna App ID is required"),
   ADZUNA_APP_KEY: z.string().min(1, "Adzuna App Key is required"),
+  SENDGRID_API_KEY: z.string().min(1, "SendGrid API key is required"),
+  SENDGRID_FROM_EMAIL: z.email("Must be a valid email address"),
 });
 
 const validateEnv = () => {
@@ -16,6 +18,8 @@ const validateEnv = () => {
       GEMINI_API_KEY: process.env.GEMINI_API_KEY,
       ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
       ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
+      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+      SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
     });
     return env;
   } catch (error) {
