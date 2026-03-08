@@ -94,7 +94,8 @@ describe("Email Service", () => {
 
     await sendJobDigest("test@example.com", "John", jobsWithDifferentScores);
 
-    const sentHtml = vi.mocked(sgMail.send).mock.calls[0][0].html as string;
+    const sentHtml = (vi.mocked(sgMail.send).mock.calls[0][0] as any)
+      .html as string;
 
     expect(sentHtml).toContain("#22c55e"); // Green
     expect(sentHtml).toContain("#3b82f6"); // Blue

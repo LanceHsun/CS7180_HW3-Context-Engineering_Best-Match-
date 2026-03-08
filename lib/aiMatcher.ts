@@ -1,4 +1,4 @@
-import { ai } from "./ai";
+import { ai, GEMINI_MODELS } from "./ai";
 import { UserProfile, JobDescription } from "./validations/schemas";
 import { NormalizedJob } from "./validations/jobListing";
 import {
@@ -11,21 +11,15 @@ import {
 export const MATCH_THRESHOLD = 70; // Issue #16: Match Score > 70%
 
 /**
- * Service for matching user profiles with job listings using Gemini 1.5 Pro.
- * @issue 16
- */
-
-/**
- * Uses Gemini 1.5 Pro to score a single job match against a user profile.
+ * Uses Gemini to score a single job match against a user profile.
  * Employs an expert recruiter persona for high-fidelity evaluation.
+ * Implements model fallback for reliability.
  * @issue 16
  */
 export async function scoreJobMatch(
   profile: UserProfile,
   job: NormalizedJob
 ): Promise<MatchResult> {
-  const model = ai.getGenerativeModel({ model: "gemini-1.5-pro" });
-
   const prompt = `
 You are a world-class talent matching specialist and expert recruiter. 
 Your task is to evaluate the alignment between a candidate's profile and a job listing.
@@ -52,26 +46,49 @@ Provide your evaluation in strict JSON format with the following fields:
 Only return the JSON object. Do not include markdown formatting or extra text.
 `;
 
-  try {
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text().trim();
+  let lastError: any = null;
 
-    // Attempt to parse JSON. Gemini sometimes adds markdown blocks even if told not to.
-    const jsonStr = text
-      .replace(/^```json/, "")
-      .replace(/```$/, "")
-      .trim();
-    const parsed = JSON.parse(jsonStr);
+  for (const modelName of GEMINI_MODELS) {
+    try {
+      const model = ai.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          responseMimeType: "application/json",
+        },
+      });
 
-    return MatchResultSchema.parse(parsed);
-  } catch (error) {
-    console.error("AI Matching Error:", error);
-    if (error instanceof SyntaxError) {
-      throw new Error("AI returned invalid JSON response");
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text().trim();
+
+      // Attempt to parse JSON. Gemini sometimes adds markdown blocks even if told not to.
+      const jsonStr = text
+        .replace(/^```json/, "")
+        .replace(/```$/, "")
+        .trim();
+      const parsed = JSON.parse(jsonStr);
+
+      return MatchResultSchema.parse(parsed);
+    } catch (error: any) {
+      lastError = error;
+      const errorMsg = error.message || "";
+      const isQuotaError =
+        errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota");
+      const isNotFoundError =
+        errorMsg.includes("404") ||
+        errorMsg.toLowerCase().includes("not found");
+
+      if (isQuotaError || isNotFoundError) {
+        console.warn(`⚠️ Model ${modelName} failed. Trying next...`);
+        continue;
+      }
+      throw error;
     }
-    throw error;
   }
+
+  throw new Error(
+    lastError?.message || "Failed to get response from any Gemini model"
+  );
 }
 
 /**
@@ -101,7 +118,7 @@ export async function runMatchBatch(
 
   for (const result of results) {
     if (result) {
-      if (result.score > MATCH_THRESHOLD) {
+      if (result.score >= MATCH_THRESHOLD) {
         scoredMatches.push(result);
       } else {
         filteredCount++;

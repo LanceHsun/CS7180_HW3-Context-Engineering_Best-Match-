@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ai } from "@/lib/ai";
+import { ai, GEMINI_MODELS } from "@/lib/ai";
 import { ResumeParseSchema } from "@/lib/validations/resume";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,20 +44,11 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Prompt Gemini for structured parsing with fallback
-    const MODELS_TO_TRY = [
-      "gemini-2.0-flash",
-      "gemini-2.0-flash-lite",
-      "gemini-2.5-flash-lite",
-      "gemini-2.5-flash",
-      "gemini-2.5-pro",
-      "gemini-flash-latest",
-    ];
-
     let lastError: any = null;
     let responseText = "";
     let usedModel = "";
 
-    for (const modelName of MODELS_TO_TRY) {
+    for (const modelName of GEMINI_MODELS) {
       try {
         console.log(`🤖 Attempting parse with model: ${modelName}`);
         const model = ai.getGenerativeModel({

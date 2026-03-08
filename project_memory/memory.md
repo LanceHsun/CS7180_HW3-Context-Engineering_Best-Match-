@@ -30,8 +30,10 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-06 | `c7cadbb0` | AI Job Matching Logic (Issue #16) | Implemented `/api/match/run` with Gemini 1.5 Pro and Zod validation. Expert recruiter persona, 70% score gate, and Supabase persistence for matches. 20 new tests (100% coverage). | ✅ Complete |
 | 2026-03-06 | `c7cadbb0` | Signout Button & Layout Fix (Issue #13) | Integrated `DashboardHeader` into layout; updated signout redirect to `/`; fixed layout tests. Pushed to `feature/16-ai-matching-complete`. | ✅ Complete |
 | 2026-03-06 | `c7cadbb0` | Automated Cron Matcher (Issue #17) | Implemented `/api/cron/match` with Vercel Cron config. Added `match_runs` logging, frequency-based user filtering, idempotency guards, and per-user error isolation. Verified with 5 unit tests (100% coverage). | ✅ Complete |
+| 2026-03-07 | `59403c30` | Fix Matching Reliability & 0 matches | Resolved Gemini 404s with model fallback; Fixed naming error in `test-pipeline.ts`; Optimized `jobFetcher.ts` for "Remote" location. Fixed `.env.local` formatting for SendGrid. Verified 12 matches and email delivery in test script. | ✅ Complete |
 | 2026-03-07 | `76993ad2` | Sync with Remote Main | Pulled latest changes from `origin main` into `feature/17-cron-matching` and updated local `main` branch. | ✅ Complete |
 | 2026-03-07 | `76993ad2` | Email Digest & SendGrid (Issue #18) | Implemented SendGrid integration and responsive HTML/Plain-text templates for job digests. Updated environment validation and verified with test script. | ✅ Complete |
+| 2026-03-07 | `76993ad2` | Email Logging in Cron (Issue #19) | Integrated email delivery into cron job. Consolidated logging into `match_runs` table with unified idempotency. Verified with 8 unit tests (100% coverage). | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
@@ -81,3 +83,4 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - [x] Job Match Listing UI (Issue #20)
 - [x] Automated Cron Job Matching (Issue #17)
 - [x] User Notification System (Issue #18)
+- [x] Email Delivery Logging & Reliability (Issue #19)
