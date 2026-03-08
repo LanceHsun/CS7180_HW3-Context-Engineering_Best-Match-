@@ -79,15 +79,25 @@ export async function fetchFromAdzuna(
 
   // Adzuna uses country code in the URL; default to "us"
   const country = "us";
+
+  let query = role;
+  let finalLocation = location;
+
+  // Handle "Remote" specially because Adzuna 'where' parameter often fails with it
+  if (location?.toLowerCase() === "remote") {
+    query = `${role} remote`;
+    finalLocation = undefined;
+  }
+
   const params = new URLSearchParams({
     app_id: appId,
     app_key: appKey,
     results_per_page: "20",
-    what: role,
+    what: query,
   });
 
-  if (location) {
-    params.set("where", location);
+  if (finalLocation) {
+    params.set("where", finalLocation);
   }
 
   const url = `${ADZUNA_BASE_URL}/${country}/search/1?${params.toString()}`;

@@ -57,6 +57,11 @@ vi.mock("@/lib/aiMatcher", () => ({
 vi.mock("@/lib/jobFetcher", () => ({
   fetchJobs: vi.fn(),
 }));
+vi.mock("@/lib/email", () => ({
+  sendJobDigest: vi.fn(),
+}));
+
+import { sendJobDigest } from "@/lib/email";
 
 describe("GET /api/cron/match", () => {
   const mockCronSecret = "test-secret";
@@ -221,5 +226,153 @@ describe("GET /api/cron/match", () => {
     expect(json.processed).toBe(2);
     expect(json.results[0].status).toBe("failed");
     expect(json.results[1].status).toBe("failed");
+  });
+
+  it("sends email if qualifying matches found", async () => {
+    // Preferences - Call 1
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [{ user_id: "u1", frequency: "daily" }], error: null })
+    );
+    // Idempotency check 1 (run) - Call 2
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    );
+    // Insert log - Call 3
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    );
+    // Fetch profile - Call 4
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({
+        data: { user_id: "u1", email: "test@example.com", target_role: "Dev" },
+        error: null,
+      })
+    );
+    // Fetch jobs - Call 5 (Actually handled by fetchJobs mock)
+    // AI Match - Call 6 (Actually handled by runMatchBatch mock)
+    // Persist matches - Call 5 (Wait, match entries upsert)
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    );
+    // Email idempotency - Call 6
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    );
+    // Update log - Call 7
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    );
+
+    (runMatchBatch as any).mockResolvedValue({
+      matches: [{ job: { title: "Dev" }, score: 85 }],
+    });
+    (sendJobDigest as any).mockResolvedValue({ success: true });
+
+    const res = await GET(createReq(mockCronSecret));
+    const json = await res.json();
+
+    expect(json.results[0].email).toBe("success");
+    expect(sendJobDigest).toHaveBeenCalled();
+  });
+
+  it("skips email if no qualifying matches found", async () => {
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [{ user_id: "u1", frequency: "daily" }], error: null })
+    );
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    ); // run idempotency
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // insert
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: { user_id: "u1", email: "t@e.c" }, error: null })
+    ); // profile
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // persist
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // update
+
+    (runMatchBatch as any).mockResolvedValue({
+      matches: [{ job: { title: "Dev" }, score: 65 }],
+    });
+
+    const res = await GET(createReq(mockCronSecret));
+    const json = await res.json();
+
+    expect(json.results[0].email).toBe("skipped");
+    expect(sendJobDigest).not.toHaveBeenCalled();
+  });
+
+  it("sends email if score is exactly 70", async () => {
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [{ user_id: "u1", frequency: "daily" }], error: null })
+    );
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    ); // run idempotency
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // insert
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: { user_id: "u1", email: "t@e.c" }, error: null })
+    ); // profile
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // persist
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    ); // email idempotency
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // update
+
+    (runMatchBatch as any).mockResolvedValue({
+      matches: [{ job: { title: "Dev" }, score: 70 }],
+    });
+    (sendJobDigest as any).mockResolvedValue({ success: true });
+
+    const res = await GET(createReq(mockCronSecret));
+    const json = await res.json();
+
+    expect(json.results[0].email).toBe("success");
+    expect(sendJobDigest).toHaveBeenCalled();
+  });
+
+  it("skips email if already sent today (idempotency)", async () => {
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [{ user_id: "u1", frequency: "daily" }], error: null })
+    );
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [], error: null })
+    ); // run idempotency
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // insert
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: { user_id: "u1", email: "t@e.c" }, error: null })
+    ); // profile
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // persist
+    // Email idempotency
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: [{ id: "existing" }], error: null })
+    );
+    mockSupabase.then.mockImplementationOnce((onF) =>
+      onF({ data: null, error: null })
+    ); // update
+
+    (runMatchBatch as any).mockResolvedValue({
+      matches: [{ job: { title: "Dev" }, score: 90 }],
+    });
+
+    const res = await GET(createReq(mockCronSecret));
+    const json = await res.json();
+
+    expect(json.results[0].email).toBe("skipped");
+    expect(sendJobDigest).not.toHaveBeenCalled();
   });
 });

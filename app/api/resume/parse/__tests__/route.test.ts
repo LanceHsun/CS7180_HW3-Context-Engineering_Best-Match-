@@ -26,6 +26,7 @@ vi.mock("@/lib/ai", () => ({
   ai: {
     getGenerativeModel: vi.fn(),
   },
+  GEMINI_MODELS: ["mock-model-1", "mock-model-2"],
 }));
 
 // Mock Supabase Server
