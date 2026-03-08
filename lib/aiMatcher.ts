@@ -66,7 +66,12 @@ Only return the JSON object. Do not include markdown formatting or extra text.
         .replace(/^```json/, "")
         .replace(/```$/, "")
         .trim();
-      const parsed = JSON.parse(jsonStr);
+      let parsed;
+      try {
+        parsed = JSON.parse(jsonStr);
+      } catch (e) {
+        throw new Error("AI returned invalid JSON response");
+      }
 
       return MatchResultSchema.parse(parsed);
     } catch (error: any) {

@@ -13,6 +13,7 @@ vi.mock("../ai", () => ({
   ai: {
     getGenerativeModel: vi.fn(() => mockModel),
   },
+  GEMINI_MODELS: ["mock-model-1", "mock-model-2"],
 }));
 
 describe("aiMatcher", () => {
