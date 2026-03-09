@@ -7,7 +7,7 @@ const envSchema = z.object({
   ADZUNA_APP_ID: z.string().min(1, "Adzuna App ID is required"),
   ADZUNA_APP_KEY: z.string().min(1, "Adzuna App Key is required"),
   SENDGRID_API_KEY: z.string().optional(),
-  SENDGRID_FROM_EMAIL: z.string().email().optional(),
+  SENDGRID_FROM_EMAIL: z.email().optional(),
 });
 
 const validateEnv = () => {
