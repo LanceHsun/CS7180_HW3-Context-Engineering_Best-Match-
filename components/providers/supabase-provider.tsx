@@ -25,15 +25,19 @@ export default function SupabaseProvider({
 
   useEffect(() => {
     // Check for mock user cookie in development/prototype mode
-    const mockUserEmail = document.cookie
+    const mockUserValue = document.cookie
       .split("; ")
       .find((row) => row.startsWith("sb-mock-user="))
       ?.split("=")[1];
 
-    if (mockUserEmail) {
+    if (mockUserValue) {
+      const parts = decodeURIComponent(mockUserValue).split("|");
+      const email = parts[0];
+      const id = parts[1] || "mock-id";
+
       setUser({
-        id: "mock-id",
-        email: decodeURIComponent(mockUserEmail),
+        id: id,
+        email: email,
         aud: "authenticated",
         role: "authenticated",
         created_at: new Date().toISOString(),
@@ -48,7 +52,7 @@ export default function SupabaseProvider({
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
         setUser(session.user);
-      } else if (!mockUserEmail) {
+      } else if (!mockUserValue) {
         setUser(null);
       }
       setIsLoading(false);

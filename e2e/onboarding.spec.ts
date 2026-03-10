@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 
 test.describe("Onboarding PDF Upload Flow", () => {
   // Create a dummy PDF file for testing
-  const dummyPdfPath = path.join(__dirname, "test-resume.pdf");
+  const dummyPdfPath = path.join(__dirname, `test-resume-${process.pid}.pdf`);
 
   test.beforeAll(() => {
     // Write a tiny valid-ish PDF file (just enough to bypass basic mime checks,
@@ -93,7 +93,7 @@ test.describe("Onboarding PDF Upload Flow", () => {
       expect(postData.email).toBe("test@example.com");
       expect(postData.targetRole).toBe("Senior Software Engineer");
 
-      await route.fulfill({ json: { success: true } });
+      await route.fulfill({ json: { success: true, userId: "test-user-id" } });
     });
 
     // Fill the email and continue

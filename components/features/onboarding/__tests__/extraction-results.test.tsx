@@ -103,7 +103,7 @@ describe("ExtractionResults Component", () => {
     });
   });
 
-  it("calls signInWithOtp after successful profile save", async () => {
+  it("triggers onComplete after clicking the button and API success", async () => {
     render(
       <ExtractionResults
         parsedData={mockParsedData}
@@ -119,8 +119,50 @@ describe("ExtractionResults Component", () => {
     });
     fireEvent.click(submitButton);
 
+    expect(screen.getByText("Creating your profile...")).toBeDefined();
+
     await waitFor(() => {
-      expect(mocks.mockSignInWithOtp).toHaveBeenCalled();
+      expect(mockOnComplete).toHaveBeenCalled();
     });
+  });
+
+  it("sets the sb-mock-user cookie and does NOT call signInWithOtp", async () => {
+    // Mock document.cookie
+    const cookieSpy = vi.spyOn(document, "cookie", "set");
+
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
+
+    const emailInput = screen.getByPlaceholderText("you@example.com");
+    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+
+    // Mock API to return userId
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ success: true, userId: "test-user-id" }),
+    });
+
+    const submitButton = screen.getByRole("button", {
+      name: /Start Receiving Matches/i,
+    });
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      expect(mockOnComplete).toHaveBeenCalled();
+    });
+
+    // Verify cookie was set correctly
+    expect(cookieSpy).toHaveBeenCalledWith(
+      expect.stringContaining("sb-mock-user=test%40example.com%7Ctest-user-id")
+    );
+
+    // Verify signInWithOtp was NOT called
+    expect(mocks.mockSignInWithOtp).not.toHaveBeenCalled();
+
+    cookieSpy.mockRestore();
   });
 });

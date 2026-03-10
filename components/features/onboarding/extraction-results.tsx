@@ -48,19 +48,15 @@ export function ExtractionResults({
         throw new Error(data.error || "Failed to save profile");
       }
 
-      // 2. Trigger Magic Link Email to create the account securely
-      const { error: signInError } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
+      const { userId } = await res.json();
 
-      if (signInError) {
-        throw signInError;
-      }
+      // 2. Set mock user cookie to bypass auth and grant immediate dashboard access
+      // format: email|userId
+      document.cookie = `sb-mock-user=${encodeURIComponent(
+        `${email}|${userId}`
+      )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
 
-      // 3. Complete and let the user know to check their email
+      // 3. Complete and redirect to dashboard
       onComplete();
     } catch (err: any) {
       console.error("Profile save error:", err);
