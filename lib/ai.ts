@@ -46,7 +46,7 @@ export async function generateWithFallback(
       console.log(`🔑 Using API Key ${keyIndex + 1} of ${aiClients.length}`);
     }
 
-    const skipCurrentKey = false;
+    let skipCurrentKey = false;
 
     for (const modelName of GEMINI_MODELS) {
       if (skipCurrentKey) break;
@@ -88,11 +88,18 @@ export async function generateWithFallback(
               ? parseInt(errorMsg.match(/\d{3}/)![0])
               : null);
 
+          // 429 is usually account/project-wide, so skip the key immediately to save time
+          if (statusCode === 429) {
+            console.warn(
+              `🛑 Key ${keyIndex + 1} is rate limited (429). Switching to next key...`
+            );
+            skipCurrentKey = true;
+            break; // Break the attempt loop
+          }
+
           const isRetryable =
-            statusCode === 429 || // Quota
             statusCode === 500 || // Internal Server Error
             statusCode === 503 || // Service Unavailable
-            errorMsg.toLowerCase().includes("quota") ||
             errorMsg.toLowerCase().includes("deadline exceeded");
 
           const isNotFoundError =
