@@ -6,22 +6,19 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Gets the base URL for the application.
- * Priority:
- * 1. NEXT_PUBLIC_SITE_URL (Manual override)
- * 2. NEXT_PUBLIC_VERCEL_URL (Automatic Vercel deployment URL)
- * 3. window.location.origin (Client-side fallback)
- * 4. http://localhost:3000 (Development fallback)
+ * Gets a fallback base URL for the application.
+ * Note: Use dynamic origin detection (request.url or window.location.origin)
+ * for critical auth redirects whenever possible.
  */
 export function getURL() {
   let url =
     (process?.env?.NEXT_PUBLIC_SITE_URL ??
-      process?.env?.NEXT_PUBLIC_VERCEL_URL ?? // Automatically set by Vercel.
+      process?.env?.NEXT_PUBLIC_VERCEL_URL ??
       (typeof window !== "undefined" ? window.location.origin : "")) ||
     "http://localhost:3000";
 
-  // Normalize URL: remove trailing slash and ensure protocol
-  url = url.replace(/\/+$/, ""); // Remove trailing slashes
+  // Normalize URL
+  url = url.replace(/\/+$/, "");
   url = url.includes("http") ? url : `https://${url}`;
 
   return url;
