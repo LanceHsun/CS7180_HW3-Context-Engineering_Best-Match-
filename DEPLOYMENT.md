@@ -26,6 +26,18 @@ You must configure the following environment variables in the Vercel project set
 | `SENDGRID_API_KEY`              | Your SendGrid API Key               | No       |
 | `SENDGRID_FROM_EMAIL`           | Your verified SendGrid sender email | No       |
 
+## Supabase URL Configuration (Critical)
+
+To ensure Magic Link redirection works correctly across all domains:
+
+1.  Log in to [Supabase Dashboard](https://supabase.com/dashboard).
+2.  Go to **Authentication** -> **URL Configuration**.
+3.  Set **Site URL** to: `https://bestmatch.page`
+4.  Add **Redirect URLs**:
+    - `https://bestmatch.page/**` (Wait for the wildcard `/**` to ensure all paths are covered)
+    - `http://localhost:3000/**` (For local development)
+    - `https://*.vercel.app/**` (Optional, for Vercel preview links)
+
 ## Manual Deployment (Vercel CLI)
 
 If you have the [Vercel CLI](https://vercel.com/download) installed and authenticated:

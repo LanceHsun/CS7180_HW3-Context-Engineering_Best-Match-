@@ -6,30 +6,43 @@ import { POST, GET } from "../route";
 const mocks = vi.hoisted(() => {
   return {
     mockUpsert: vi.fn(),
+    mockInsert: vi.fn(),
     mockDelete: vi.fn(),
     mockSelect: vi.fn(),
     mockEq: vi.fn(),
     mockSingle: vi.fn(),
     mockGetUser: vi.fn(),
+    mockListUsers: vi.fn(),
+    mockCreateUser: vi.fn(),
   };
 });
 
 // Re-export for ease of use in tests
 export const {
   mockUpsert,
+  mockInsert,
   mockDelete,
   mockSelect,
   mockEq,
   mockSingle,
   mockGetUser,
+  mockListUsers,
+  mockCreateUser,
 } = mocks;
 
 // Mock both local and @supabase/supabase-js clients identical for test scope
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
-    auth: { getUser: mocks.mockGetUser },
+    auth: {
+      getUser: mocks.mockGetUser,
+      admin: {
+        listUsers: mocks.mockListUsers,
+        createUser: mocks.mockCreateUser,
+      },
+    },
     from: vi.fn(() => ({
       upsert: mocks.mockUpsert,
+      insert: mocks.mockInsert,
       select: mocks.mockSelect,
       delete: mocks.mockDelete,
     })),
@@ -38,9 +51,16 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(() => ({
-    auth: { getUser: mocks.mockGetUser },
+    auth: {
+      getUser: mocks.mockGetUser,
+      admin: {
+        listUsers: mocks.mockListUsers,
+        createUser: mocks.mockCreateUser,
+      },
+    },
     from: vi.fn(() => ({
       upsert: mocks.mockUpsert,
+      insert: mocks.mockInsert,
       select: mocks.mockSelect,
       delete: mocks.mockDelete,
     })),
@@ -55,8 +75,13 @@ describe("Profile APIs", () => {
   });
 
   describe("POST /api/profile/pending - Unauthenticated Drop-Box", () => {
-    it("should successfully upsert a valid pending profile", async () => {
-      mockUpsert.mockResolvedValue({ error: null });
+    it("should successfully create user and profile", async () => {
+      mockListUsers.mockResolvedValue({ data: { users: [] }, error: null });
+      mockCreateUser.mockResolvedValue({
+        data: { user: { id: "new-user-123" } },
+        error: null,
+      });
+      mockInsert.mockResolvedValue({ error: null });
 
       const req = new Request("http://localhost/api/profile/pending", {
         method: "POST",
@@ -72,20 +97,23 @@ describe("Profile APIs", () => {
       expect(res.status).toBe(200);
       const data = await res.json();
       expect(data.success).toBe(true);
+      expect(data.userId).toBe("new-user-123");
 
-      expect(mockUpsert).toHaveBeenCalledWith(
-        {
-          email: "test@example.com",
-          target_role: "Developer",
-          skills: ["React", "Typescript"],
-          experience_level: "mid",
-        },
-        { onConflict: "email" }
-      );
+      expect(mockInsert).toHaveBeenCalledWith({
+        user_id: "new-user-123",
+        target_role: "Developer",
+        skills: ["React", "Typescript"],
+        experience_level: "mid",
+      });
     });
 
-    it("should return 500 if the pending_profiles upsert fails", async () => {
-      mockUpsert.mockResolvedValue({
+    it("should return 500 if the profile creation fails", async () => {
+      mockListUsers.mockResolvedValue({ data: { users: [] }, error: null });
+      mockCreateUser.mockResolvedValue({
+        data: { user: { id: "new-user-123" } },
+        error: null,
+      });
+      mockInsert.mockResolvedValue({
         error: { message: "Database connection failed" },
       });
 
@@ -101,7 +129,7 @@ describe("Profile APIs", () => {
       const res: any = await pendingPost(req);
       expect(res.status).toBe(500);
       const data = await res.json();
-      expect(data.error).toBe("Failed to securely save pending profile");
+      expect(data.error).toBe("Account created but profile sync failed");
     });
 
     it("should return 400 for structural invalid data", async () => {

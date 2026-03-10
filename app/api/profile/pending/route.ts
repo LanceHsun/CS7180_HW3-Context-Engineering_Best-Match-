@@ -34,9 +34,42 @@ export async function POST(req: Request) {
     // 1. Zod Validation
     const parsedData = PendingProfileSchema.parse(body);
 
+    // Check if user already exists in auth.users
+    const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
+    const userFound = existingUser?.users.find(
+      (u) => u.email === parsedData.email
+    );
+
+    if (userFound) {
+      return NextResponse.json(
+        {
+          error: "Account already exists",
+          exists: true,
+          message:
+            "This email is already registered. Please sign in via the login page to update your profile.",
+        },
+        { status: 400 }
+      );
+    }
+
+    // 2. Create the user silently
+    const { data: newUser, error: createError } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: parsedData.email,
+        email_confirm: true,
+      });
+
+    if (createError) {
+      console.error("Supabase user creation error:", createError);
+      return NextResponse.json(
+        { error: "Failed to create account", details: createError.message },
+        { status: 500 }
+      );
+    }
+
+    const userId = newUser.user.id;
+
     // Map experience level from yearsOfExperience (if provided)
-    // Or if the frontend provides it directly, we can use it. But our schema has yearsOfExperience.
-    // Let's implement a simple mapping logic.
     let experienceLevel = "entry";
     if (parsedData.yearsOfExperience !== undefined) {
       if (parsedData.yearsOfExperience >= 8) {
@@ -46,31 +79,33 @@ export async function POST(req: Request) {
       }
     }
 
-    // 2. Insert into anonymous drop-box table
-    const { error } = await supabaseAdmin.from("pending_profiles").upsert(
-      {
-        email: parsedData.email,
+    // 3. Insert into profiles table directly
+    const { error: profileError } = await supabaseAdmin
+      .from("profiles")
+      .insert({
+        user_id: userId,
         target_role: parsedData.targetRole,
         skills: parsedData.skills,
         experience_level: experienceLevel,
-      },
-      { onConflict: "email" }
-    );
+      });
 
-    if (error) {
-      console.error("Supabase pending_profile insert error:", error);
+    if (profileError) {
+      console.error("Supabase profile insert error:", profileError);
+      // We created the user but failed to create the profile.
+      // We'll let them sign in and fix it, but ideally we'd cleanup.
+      // For now, return error so the frontend knows something went wrong.
       return NextResponse.json(
         {
-          error: "Failed to securely save pending profile",
-          details: error.message,
+          error: "Account created but profile sync failed",
+          details: profileError.message,
         },
         { status: 500 }
       );
     }
 
-    // 3. Success
+    // 4. Success - Return the userId so the frontend can set the mock cookie
     return NextResponse.json(
-      { success: true, message: "Profile saved securely." },
+      { success: true, message: "Account created and profile synced.", userId },
       { status: 200 }
     );
   } catch (error) {

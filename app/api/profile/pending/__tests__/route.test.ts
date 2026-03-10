@@ -50,9 +50,25 @@ describe("POST /api/profile/pending", () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
 
-    const mockUpsert = vi.fn().mockResolvedValue({ error: null });
+    const mockInsert = vi.fn().mockResolvedValue({ error: null });
+    const mockListUsers = vi
+      .fn()
+      .mockResolvedValue({ data: { users: [] }, error: null });
+    const mockCreateUser = vi
+      .fn()
+      .mockResolvedValue({
+        data: { user: { id: "new-user-id" } },
+        error: null,
+      });
+
     const mockSupabase = {
-      from: vi.fn().mockReturnValue({ upsert: mockUpsert }),
+      auth: {
+        admin: {
+          listUsers: mockListUsers,
+          createUser: mockCreateUser,
+        },
+      },
+      from: vi.fn().mockReturnValue({ insert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 
@@ -70,27 +86,36 @@ describe("POST /api/profile/pending", () => {
 
     const response = await POST(req);
     expect(response.status).toBe(200);
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ experience_level: "senior" }),
-      { onConflict: "email" }
+    expect(mockInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        experience_level: "senior",
+        user_id: "new-user-id",
+      })
     );
   });
 
-  it("maps experience level correctly for mid", async () => {
+  it("returns 400 if user already exists", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
 
-    const mockUpsert = vi.fn().mockResolvedValue({ error: null });
+    const mockListUsers = vi.fn().mockResolvedValue({
+      data: { users: [{ email: "test@example.com" }] },
+      error: null,
+    });
+
     const mockSupabase = {
-      from: vi.fn().mockReturnValue({ upsert: mockUpsert }),
+      auth: {
+        admin: {
+          listUsers: mockListUsers,
+        },
+      },
     };
     (createClient as any).mockReturnValue(mockSupabase);
 
     const data = {
       email: "test@example.com",
-      targetRole: "Staff Engineer",
+      targetRole: "Engineer",
       skills: ["React"],
-      yearsOfExperience: 5,
     };
 
     const req = new Request("http://localhost/api/profile/pending", {
@@ -99,22 +124,36 @@ describe("POST /api/profile/pending", () => {
     });
 
     const response = await POST(req);
-    expect(response.status).toBe(200);
-    expect(mockUpsert).toHaveBeenCalledWith(
-      expect.objectContaining({ experience_level: "mid" }),
-      { onConflict: "email" }
-    );
+    expect(response.status).toBe(400);
+    const json = await response.json();
+    expect(json.error).toBe("Account already exists");
   });
 
   it("returns 500 on Supabase error", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
 
-    const mockUpsert = vi
+    const mockInsert = vi
       .fn()
       .mockResolvedValue({ error: { message: "DB Error" } });
+    const mockListUsers = vi
+      .fn()
+      .mockResolvedValue({ data: { users: [] }, error: null });
+    const mockCreateUser = vi
+      .fn()
+      .mockResolvedValue({
+        data: { user: { id: "new-user-id" } },
+        error: null,
+      });
+
     const mockSupabase = {
-      from: vi.fn().mockReturnValue({ upsert: mockUpsert }),
+      auth: {
+        admin: {
+          listUsers: mockListUsers,
+          createUser: mockCreateUser,
+        },
+      },
+      from: vi.fn().mockReturnValue({ insert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 
@@ -133,6 +172,6 @@ describe("POST /api/profile/pending", () => {
     const response = await POST(req);
     expect(response.status).toBe(500);
     const json = await response.json();
-    expect(json.error).toBe("Failed to securely save pending profile");
+    expect(json.error).toBe("Account created but profile sync failed");
   });
 });
