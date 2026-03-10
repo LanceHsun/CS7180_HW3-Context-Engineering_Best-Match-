@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { scoreJobMatch, runMatchBatch } from "@/lib/aiMatcher";
-import { ai } from "../ai";
+import { ai, generateWithFallback } from "../ai";
 import { UserProfile } from "../validations/schemas";
 import { NormalizedJob } from "../validations/jobListing";
 
@@ -14,6 +14,7 @@ vi.mock("../ai", () => ({
     getGenerativeModel: vi.fn(() => mockModel),
   },
   GEMINI_MODELS: ["mock-model-1", "mock-model-2"],
+  generateWithFallback: vi.fn(),
 }));
 
 describe("aiMatcher", () => {
@@ -46,43 +47,38 @@ describe("aiMatcher", () => {
         reasoning: "Excellent alignment with React and TypeScript skills.",
       });
 
-      const mockResult = {
-        response: {
-          text: () => mockResponseText,
-        },
-      };
-
-      mockModel.generateContent.mockResolvedValue(mockResult as any);
+      vi.mocked(generateWithFallback).mockResolvedValue({
+        text: mockResponseText,
+        modelName: "mock-model-1",
+      });
 
       const result = await scoreJobMatch(mockProfile, mockJob);
 
       expect(result.score).toBe(95);
       expect(result.reasoning).toContain("Excellent alignment");
-      expect(mockModel.generateContent).toHaveBeenCalled();
+      expect(generateWithFallback).toHaveBeenCalled();
     });
 
     it("handles missing targetRole in prompt correctly", async () => {
-      const mockResult = {
-        response: {
-          text: () => JSON.stringify({ score: 70, reasoning: "Ok" }),
-        },
-      };
-      mockModel.generateContent.mockResolvedValue(mockResult as any);
+      vi.mocked(generateWithFallback).mockResolvedValue({
+        text: JSON.stringify({ score: 70, reasoning: "Ok" }),
+        modelName: "mock-model-1",
+      });
 
       const profileWithoutRole = { ...mockProfile, targetRole: undefined };
       await scoreJobMatch(profileWithoutRole as any, mockJob);
 
-      const prompt = vi.mocked(mockModel.generateContent).mock
-        .calls[0][0] as string;
+      const prompt = vi.mocked(generateWithFallback).mock.calls[0][0] as string;
       expect(prompt).toContain("Target Role: Not specified");
     });
 
     it("handles non-JSON response from AI gracefully", async () => {
       const mockResponseText = "This is not JSON";
 
-      mockModel.generateContent.mockResolvedValue({
-        response: { text: () => mockResponseText },
-      } as any);
+      vi.mocked(generateWithFallback).mockResolvedValue({
+        text: mockResponseText,
+        modelName: "mock-model-1",
+      });
 
       await expect(scoreJobMatch(mockProfile, mockJob)).rejects.toThrow(
         "AI returned invalid JSON response"
@@ -90,7 +86,7 @@ describe("aiMatcher", () => {
     });
 
     it("handles AI API errors gracefully", async () => {
-      mockModel.generateContent.mockRejectedValue(new Error("AI error"));
+      vi.mocked(generateWithFallback).mockRejectedValue(new Error("AI error"));
 
       await expect(scoreJobMatch(mockProfile, mockJob)).rejects.toThrow(
         "AI error"
@@ -106,18 +102,16 @@ describe("aiMatcher", () => {
       ];
 
       // First call (matching)
-      mockModel.generateContent
+      vi.mocked(generateWithFallback)
         .mockResolvedValueOnce({
-          response: {
-            text: () => JSON.stringify({ score: 90, reasoning: "Good" }),
-          },
-        } as any)
+          text: JSON.stringify({ score: 90, reasoning: "Good" }),
+          modelName: "mock-model-1",
+        })
         // Second call (non-matching)
         .mockResolvedValueOnce({
-          response: {
-            text: () => JSON.stringify({ score: 50, reasoning: "Bad" }),
-          },
-        } as any);
+          text: JSON.stringify({ score: 50, reasoning: "Bad" }),
+          modelName: "mock-model-1",
+        });
 
       const result = await runMatchBatch(mockProfile, jobs);
 
@@ -129,11 +123,10 @@ describe("aiMatcher", () => {
     it("returns empty matches if no jobs pass threshold", async () => {
       const jobs: NormalizedJob[] = [mockJob];
 
-      mockModel.generateContent.mockResolvedValue({
-        response: {
-          text: () => JSON.stringify({ score: 60, reasoning: "Too low" }),
-        },
-      } as any);
+      vi.mocked(generateWithFallback).mockResolvedValue({
+        text: JSON.stringify({ score: 60, reasoning: "Too low" }),
+        modelName: "mock-model-1",
+      });
 
       const result = await runMatchBatch(mockProfile, jobs);
 
@@ -147,17 +140,15 @@ describe("aiMatcher", () => {
         { ...mockJob, title: "Higher Score" },
       ];
 
-      mockModel.generateContent
+      vi.mocked(generateWithFallback)
         .mockResolvedValueOnce({
-          response: {
-            text: () => JSON.stringify({ score: 80, reasoning: "Ok" }),
-          },
-        } as any)
+          text: JSON.stringify({ score: 80, reasoning: "Ok" }),
+          modelName: "mock-model-1",
+        })
         .mockResolvedValueOnce({
-          response: {
-            text: () => JSON.stringify({ score: 95, reasoning: "Great" }),
-          },
-        } as any);
+          text: JSON.stringify({ score: 95, reasoning: "Great" }),
+          modelName: "mock-model-1",
+        });
 
       const result = await runMatchBatch(mockProfile, jobs);
 
@@ -172,13 +163,12 @@ describe("aiMatcher", () => {
         { ...mockJob, title: "Successful Job" },
       ];
 
-      mockModel.generateContent
+      vi.mocked(generateWithFallback)
         .mockRejectedValueOnce(new Error("AI Failure"))
         .mockResolvedValueOnce({
-          response: {
-            text: () => JSON.stringify({ score: 90, reasoning: "Good" }),
-          },
-        } as any);
+          text: JSON.stringify({ score: 90, reasoning: "Good" }),
+          modelName: "mock-model-1",
+        });
 
       const result = await runMatchBatch(mockProfile, jobs);
 
