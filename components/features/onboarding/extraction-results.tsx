@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { ResumeParseResult } from "@/lib/validations/resume";
+import { getURL } from "@/lib/utils";
 
 interface ExtractionResultsProps {
   parsedData: ResumeParseResult | null;
@@ -51,7 +52,7 @@ export function ExtractionResults({
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getURL()}auth/callback`,
         },
       });
 
@@ -61,7 +62,6 @@ export function ExtractionResults({
 
       // 3. Complete and let the user know to check their email
       onComplete();
-
     } catch (err: any) {
       console.error("Profile save error:", err);
       setError(err.message || "An error occurred. Please try again.");

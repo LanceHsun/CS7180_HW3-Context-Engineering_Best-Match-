@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getURL } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
@@ -34,11 +35,12 @@ export async function GET(request: NextRequest) {
             });
 
             // Find pending profile securely
-            const { data: pendingProfile, error: pendingError } = await supabaseAdmin
-              .from("pending_profiles")
-              .select("*")
-              .eq("email", user.email)
-              .maybeSingle();
+            const { data: pendingProfile, error: pendingError } =
+              await supabaseAdmin
+                .from("pending_profiles")
+                .select("*")
+                .eq("email", user.email)
+                .maybeSingle();
 
             if (pendingError) {
               console.error("Failed to query pending profile:", pendingError);
@@ -48,12 +50,15 @@ export async function GET(request: NextRequest) {
               // Sync to main profiles table
               const { error: upsertError } = await supabase
                 .from("profiles")
-                .upsert({
-                  user_id: user.id,
-                  target_role: pendingProfile.target_role,
-                  skills: pendingProfile.skills,
-                  experience_level: pendingProfile.experience_level,
-                }, { onConflict: 'user_id' });
+                .upsert(
+                  {
+                    user_id: user.id,
+                    target_role: pendingProfile.target_role,
+                    skills: pendingProfile.skills,
+                    experience_level: pendingProfile.experience_level,
+                  },
+                  { onConflict: "user_id" }
+                );
 
               if (!upsertError) {
                 // Delete the pending record to keep it clean
@@ -73,7 +78,9 @@ export async function GET(request: NextRequest) {
             console.error("Error syncing pending profile:", error);
           }
         } else {
-          console.warn("Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL. Skipping pending profile sync.");
+          console.warn(
+            "Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL. Skipping pending profile sync."
+          );
         }
       }
 
@@ -82,15 +89,19 @@ export async function GET(request: NextRequest) {
       const isLocalEnv = process.env.NODE_ENV === "development";
       if (isLocalEnv) {
         // we can be sure that there is no proxy in between
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(
+          `${getURL()}${next.startsWith("/") ? next.slice(1) : next}`
+        );
       } else if (forwardedHost) {
         return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
-        return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(
+          `${getURL()}${next.startsWith("/") ? next.slice(1) : next}`
+        );
       }
     }
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  return NextResponse.redirect(`${getURL()}auth/auth-code-error`);
 }
