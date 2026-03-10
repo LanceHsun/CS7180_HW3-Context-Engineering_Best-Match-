@@ -2,7 +2,6 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../route";
 import { NextRequest } from "next/server";
 import * as aiModule from "@/lib/ai";
-import { ai } from "@/lib/ai";
 import * as supabaseServer from "@/lib/supabase/server";
 
 // Mock pdf2json
@@ -24,9 +23,6 @@ vi.mock("pdf2json", () => {
 
 // Mock generative AI
 vi.mock("@/lib/ai", () => ({
-  ai: {
-    getGenerativeModel: vi.fn(),
-  },
   GEMINI_MODELS: ["mock-model-1", "mock-model-2"],
   generateWithFallback: vi.fn(),
 }));

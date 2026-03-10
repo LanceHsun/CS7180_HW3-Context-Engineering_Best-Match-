@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ai, GEMINI_MODELS, generateWithFallback } from "@/lib/ai";
+import { GEMINI_MODELS, generateWithFallback } from "@/lib/ai";
 import { ResumeParseSchema } from "@/lib/validations/resume";
 import { createClient } from "@/lib/supabase/server";
 

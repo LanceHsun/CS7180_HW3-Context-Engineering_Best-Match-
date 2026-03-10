@@ -1,4 +1,4 @@
-import { ai, GEMINI_MODELS, generateWithFallback } from "./ai";
+import { GEMINI_MODELS, generateWithFallback } from "./ai";
 import { UserProfile, JobDescription } from "./validations/schemas";
 import { NormalizedJob } from "./validations/jobListing";
 import {
