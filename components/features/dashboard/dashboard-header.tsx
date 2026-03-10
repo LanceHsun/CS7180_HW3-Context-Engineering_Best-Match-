@@ -20,16 +20,12 @@ export function DashboardHeader() {
   const handleSignOut = async () => {
     setIsSigningOut(true);
     try {
-      const res = await fetch("/auth/signout", { method: "POST" });
-      if (res.redirected) {
-        router.push(res.url);
-      } else {
-        router.push("/");
-      }
-      router.refresh();
+      await fetch("/auth/signout", { method: "POST" });
+      // Force a hard reload to clear all client-side state and navigate
+      window.location.href = "/";
     } catch {
       // Fallback: redirect manually
-      router.push("/");
+      window.location.href = "/";
     }
   };
 
