@@ -35,6 +35,8 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-07 | `76993ad2` | Email Digest & SendGrid (Issue #18) | Implemented SendGrid integration and responsive HTML/Plain-text templates for job digests. Updated environment validation and verified with test script. | ✅ Complete |
 | 2026-03-07 | `76993ad2` | Email Logging in Cron (Issue #19) | Integrated email delivery into cron job. Consolidated logging into `match_runs` table with unified idempotency. Verified with 8 unit tests (100% coverage). | ✅ Complete |
 | 2026-03-09 | `b7a6f998` | Remote Main Sync | Fetched and merged `origin/main` into current feature branch. Fast-forward merge successful. | ✅ Complete |
+| 2026-03-10 | `0d48165b` | Vercel Deployment Prep | Switched to `main`; Created `DEPLOYMENT.md`; Updated `.env.example` and `README.md`; Verified local production build and linting. | ✅ Complete |
+| 2026-03-10 | `8d6fef29` | Fix Magic Link Redirection Logic | Implemented `getURL()` utility in `lib/utils.ts` to reliably determine site domain. Updated sign-in, onboarding, and auth callback routes to use centralized URL utility. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
@@ -65,6 +67,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 - [x] API Skeleton Structure (`app/api/match/route.ts` & `/api/health`)
 - [x] Vitest API Testing (`/api/health` integration test)
 - [x] CI/CD Pipeline (Lint, Test, Security gates in `.github/workflows/ci.yml`)
+- [x] Vercel Deployment Documentation (`DEPLOYMENT.md`)
 
 ### CI/CD Architecture (Issue #22)
 - **Tooling:** GitHub Actions workflow triggered on push/PR to `main`.

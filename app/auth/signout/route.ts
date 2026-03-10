@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { getURL } from "@/lib/utils";
 
 /**
  * POST /auth/signout
@@ -13,7 +14,7 @@ export async function POST(request: NextRequest) {
   await supabase.auth.signOut();
 
   // Build redirect URL from the request origin
-  const redirectUrl = new URL("/", request.url);
+  const redirectUrl = getURL();
 
   const response = NextResponse.redirect(redirectUrl, { status: 302 });
 

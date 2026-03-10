@@ -52,3 +52,8 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 - **Backend**: Next.js API Routes (Node.js)
 - **Database/Auth**: Supabase
 - **AI**: Gemini 1.5 Pro
+- **Job Search API**: Adzuna
+
+## Deployment
+
+For instructions on how to deploy this project to Vercel, please refer to the [Deployment Guide](./DEPLOYMENT.md).

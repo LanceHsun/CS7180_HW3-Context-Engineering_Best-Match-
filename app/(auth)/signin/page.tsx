@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
+import { getURL } from "@/lib/utils";
 
 const emailSchema = z.email({ message: "Please enter a valid email address" });
 
@@ -51,7 +52,7 @@ export default function SignInPage() {
       const { error: signInError } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getURL()}auth/callback`,
         },
       });
 
