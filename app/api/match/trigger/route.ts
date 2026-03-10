@@ -76,8 +76,8 @@ export async function POST(req: NextRequest) {
         location: locations.length > 0 ? locations[0] : undefined,
       });
 
-      // 5. AI Matching (Slice to 5 to avoid 10s timeout on Vercel Hobby)
-      const topJobs = allJobs.slice(0, 5);
+      // 5. AI Matching (Increase to 10 jobs for better coverage while balancing latency)
+      const topJobs = allJobs.slice(0, 10);
       const matchResults: MatchRunResponse = await runMatchBatch(
         profile,
         topJobs
@@ -95,7 +95,6 @@ export async function POST(req: NextRequest) {
           apply_url: m.job.apply_url,
           description: m.job.description,
           location: m.job.location,
-          reasoning: m.reasoning,
         }));
 
         const { error: insertError } = await supabase

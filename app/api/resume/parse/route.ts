@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { ai, GEMINI_MODELS } from "@/lib/ai";
+import { GEMINI_MODELS, generateWithFallback } from "@/lib/ai";
 import { ResumeParseSchema } from "@/lib/validations/resume";
 import { createClient } from "@/lib/supabase/server";
 
@@ -44,21 +44,10 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Prompt Gemini for structured parsing with fallback
-    let lastError: any = null;
     let responseText = "";
-    let usedModel = "";
 
-    for (const modelName of GEMINI_MODELS) {
-      try {
-        console.log(`🤖 Attempting parse with model: ${modelName}`);
-        const model = ai.getGenerativeModel({
-          model: modelName,
-          generationConfig: {
-            responseMimeType: "application/json",
-          },
-        });
-
-        const prompt = `
+    try {
+      const prompt = `
           You are an expert technical recruiter and resume parser.
           Analyze the following resume text and extract the candidate's primary target role and their key skills (hard and soft).
           Calculate their overall years of professional experience if possible.
@@ -76,38 +65,16 @@ export async function POST(req: NextRequest) {
           ---
         `;
 
-        const result = await model.generateContent(prompt);
-        responseText = result.response.text();
-        usedModel = modelName;
+      const { text: resultText, modelName } =
+        await generateWithFallback(prompt);
+      responseText = resultText;
 
-        if (responseText) {
-          console.log(`✅ Successfully parsed with ${modelName}`);
-          break; // Exit loop on success
-        }
-      } catch (error: any) {
-        lastError = error;
-        const errorMsg = error.message || "";
-        const isQuotaError =
-          errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota");
-        const isNotFoundError =
-          errorMsg.includes("404") ||
-          errorMsg.toLowerCase().includes("not found");
-
-        if (isQuotaError || isNotFoundError) {
-          console.warn(
-            `⚠️ Model ${modelName} failed (${isQuotaError ? "Quota" : "Not Found"}). Trying next...`
-          );
-          continue;
-        }
-
-        // If it's another kind of error, throw it immediately
-        throw error;
-      }
-    }
-
-    if (!responseText) {
-      throw new Error(
-        lastError?.message || "Failed to get response from any Gemini model"
+      console.log(`✅ Successfully parsed with ${modelName}`);
+    } catch (error: any) {
+      console.error("Resume parse AI error:", error);
+      return NextResponse.json(
+        { error: error?.message || "AI parsing failed" },
+        { status: 500 }
       );
     }
 

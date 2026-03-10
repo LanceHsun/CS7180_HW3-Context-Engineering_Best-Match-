@@ -1,4 +1,4 @@
-import { ai, GEMINI_MODELS } from "./ai";
+import { GEMINI_MODELS, generateWithFallback } from "./ai";
 import { UserProfile, JobDescription } from "./validations/schemas";
 import { NormalizedJob } from "./validations/jobListing";
 import {
@@ -46,54 +46,29 @@ Provide your evaluation in strict JSON format with the following fields:
 Only return the JSON object. Do not include markdown formatting or extra text.
 `;
 
-  let lastError: any = null;
+  try {
+    const { text } = await generateWithFallback(prompt);
 
-  for (const modelName of GEMINI_MODELS) {
+    // Attempt to parse JSON. Gemini sometimes adds markdown blocks even if told not to.
+    const jsonStr = text
+      .trim()
+      .replace(/^```json/, "")
+      .replace(/```$/, "")
+      .trim();
+
+    let parsed;
     try {
-      const model = ai.getGenerativeModel({
-        model: modelName,
-        generationConfig: {
-          responseMimeType: "application/json",
-        },
-      });
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text().trim();
-
-      // Attempt to parse JSON. Gemini sometimes adds markdown blocks even if told not to.
-      const jsonStr = text
-        .replace(/^```json/, "")
-        .replace(/```$/, "")
-        .trim();
-      let parsed;
-      try {
-        parsed = JSON.parse(jsonStr);
-      } catch (e) {
-        throw new Error("AI returned invalid JSON response");
-      }
-
-      return MatchResultSchema.parse(parsed);
-    } catch (error: any) {
-      lastError = error;
-      const errorMsg = error.message || "";
-      const isQuotaError =
-        errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota");
-      const isNotFoundError =
-        errorMsg.includes("404") ||
-        errorMsg.toLowerCase().includes("not found");
-
-      if (isQuotaError || isNotFoundError) {
-        console.warn(`⚠️ Model ${modelName} failed. Trying next...`);
-        continue;
-      }
-      throw error;
+      parsed = JSON.parse(jsonStr);
+    } catch (e) {
+      console.error("Failed to parse Gemini JSON:", text);
+      throw new Error("AI returned invalid JSON response");
     }
-  }
 
-  throw new Error(
-    lastError?.message || "Failed to get response from any Gemini model"
-  );
+    return MatchResultSchema.parse(parsed);
+  } catch (error: any) {
+    console.error("Error in scoreJobMatch:", error);
+    throw error;
+  }
 }
 
 /**
@@ -107,19 +82,16 @@ export async function runMatchBatch(
   const scoredMatches: ScoredMatch[] = [];
   let filteredCount = 0;
 
-  // Process in parallel with some concurrency control if needed,
-  // but for small batches simple Promise.all is fine.
-  const results = await Promise.all(
-    jobs.map(async (job) => {
-      try {
-        const matchResult = await scoreJobMatch(profile, job);
-        return { job, ...matchResult };
-      } catch (error) {
-        console.error(`Failed to score job: ${job.title}`, error);
-        return null;
-      }
-    })
-  );
+  const results = [];
+  for (const job of jobs) {
+    try {
+      const matchResult = await scoreJobMatch(profile, job);
+      results.push({ job, ...matchResult });
+    } catch (error) {
+      console.error(`Failed to score job: ${job.title}`, error);
+      results.push(null);
+    }
+  }
 
   for (const result of results) {
     if (result) {

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../route";
 import { NextRequest } from "next/server";
-import { ai } from "@/lib/ai";
+import * as aiModule from "@/lib/ai";
 import * as supabaseServer from "@/lib/supabase/server";
 
 // Mock pdf2json
@@ -23,10 +23,8 @@ vi.mock("pdf2json", () => {
 
 // Mock generative AI
 vi.mock("@/lib/ai", () => ({
-  ai: {
-    getGenerativeModel: vi.fn(),
-  },
   GEMINI_MODELS: ["mock-model-1", "mock-model-2"],
+  generateWithFallback: vi.fn(),
 }));
 
 // Mock Supabase Server
@@ -80,19 +78,13 @@ describe("POST /api/resume/parse", () => {
       }),
     }));
 
-    const mockGenerateContent = vi.fn().mockResolvedValue({
-      response: {
-        text: () =>
-          JSON.stringify({
-            targetRole: "Software Engineer",
-            skills: ["React", "TypeScript"],
-            yearsOfExperience: 5,
-          }),
-      },
-    });
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
+    vi.mocked(aiModule.generateWithFallback).mockResolvedValue({
+      text: JSON.stringify({
+        targetRole: "Software Engineer",
+        skills: ["React", "TypeScript"],
+        yearsOfExperience: 5,
+      }),
+      modelName: "mock-model-1",
     });
 
     // Mock createClient
@@ -132,23 +124,10 @@ describe("POST /api/resume/parse", () => {
     expect(json.data.skills).toEqual(["React", "TypeScript"]);
   });
 
-  it("handles model fallback on quota error", async () => {
-    const mockGenerateContent = vi
-      .fn()
-      .mockRejectedValueOnce(new Error("429 Quota Exceeded"))
-      .mockResolvedValueOnce({
-        response: {
-          text: () =>
-            JSON.stringify({
-              targetRole: "Product Manager",
-              skills: ["Strategy", "Roadmapping"],
-            }),
-        },
-      });
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
-    });
+  it("handles model failures", async () => {
+    vi.mocked(aiModule.generateWithFallback).mockRejectedValue(
+      new Error("All models failed")
+    );
 
     (supabaseServer.createClient as any).mockResolvedValue({
       auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
@@ -170,49 +149,14 @@ describe("POST /api/resume/parse", () => {
     const response = await POST(mockRequest);
     const json = await response.json();
 
-    expect(response.status).toBe(200);
-    expect(json.data.targetRole).toBe("Product Manager");
-    expect(mockGenerateContent).toHaveBeenCalledTimes(2);
-  });
-
-  it("throws error if all models fail", async () => {
-    const mockGenerateContent = vi
-      .fn()
-      .mockRejectedValue(new Error("429 Quota Exceeded"));
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
-    });
-
-    const formData = new FormData();
-    formData.append(
-      "file",
-      new File([Buffer.from("dummy pdf")], "test.pdf", {
-        type: "application/pdf",
-      })
-    );
-
-    const mockRequest = new NextRequest("http://localhost/api/resume/parse", {
-      method: "POST",
-      body: formData,
-    });
-
-    const response = await POST(mockRequest);
-    const json = await response.json();
-
     expect(response.status).toBe(500);
-    expect(json.error).toContain("429 Quota Exceeded");
+    expect(json.error).toBe("All models failed");
   });
 
   it("returns 500 if AI returns invalid JSON", async () => {
-    const mockGenerateContent = vi.fn().mockResolvedValue({
-      response: {
-        text: () => "Not valid JSON",
-      },
-    });
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
+    vi.mocked(aiModule.generateWithFallback).mockResolvedValue({
+      text: "Not valid JSON",
+      modelName: "mock-model-1",
     });
 
     const formData = new FormData();
@@ -236,18 +180,12 @@ describe("POST /api/resume/parse", () => {
   });
 
   it("updates user profile if authenticated", async () => {
-    const mockGenerateContent = vi.fn().mockResolvedValue({
-      response: {
-        text: () =>
-          JSON.stringify({
-            targetRole: "Designer",
-            skills: ["Figma"],
-          }),
-      },
-    });
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
+    vi.mocked(aiModule.generateWithFallback).mockResolvedValue({
+      text: JSON.stringify({
+        targetRole: "Designer",
+        skills: ["Figma"],
+      }),
+      modelName: "mock-model-1",
     });
 
     const mockUpdate = vi.fn().mockReturnValue({ eq: vi.fn() });
@@ -350,13 +288,9 @@ describe("POST /api/resume/parse", () => {
   });
 
   it("rethrows non-retryable model errors", async () => {
-    const mockGenerateContent = vi
-      .fn()
-      .mockRejectedValue(new Error("500 Internal AI Error"));
-
-    (ai.getGenerativeModel as any).mockReturnValue({
-      generateContent: mockGenerateContent,
-    });
+    vi.mocked(aiModule.generateWithFallback).mockRejectedValue(
+      new Error("500 Internal AI Error")
+    );
 
     const formData = new FormData();
     formData.append(
