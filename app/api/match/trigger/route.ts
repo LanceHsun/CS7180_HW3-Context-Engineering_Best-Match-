@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { runMatchBatch } from "@/lib/aiMatcher";
 import { fetchJobs } from "@/lib/jobFetcher";
 import { sendJobDigest } from "@/lib/email";
@@ -15,6 +16,10 @@ import { MatchRunResponse } from "@/lib/validations/match";
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
+    const supabaseAdmin = createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Authenticate user
     const {
@@ -32,7 +37,7 @@ export async function POST(req: NextRequest) {
     const runId = crypto.randomUUID();
 
     // 2. Log Start
-    await supabase.from("match_runs").insert({
+    await supabaseAdmin.from("match_runs").insert({
       id: runId,
       user_id: user.id,
       status: "running",
@@ -137,7 +142,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Complete Run
-      await supabase
+      await supabaseAdmin
         .from("match_runs")
         .update({
           status: "completed",
@@ -154,7 +159,7 @@ export async function POST(req: NextRequest) {
       console.error("Trigger Match Process Error:", processError);
 
       // Update run to failed
-      await supabase
+      await supabaseAdmin
         .from("match_runs")
         .update({
           status: "failed",
