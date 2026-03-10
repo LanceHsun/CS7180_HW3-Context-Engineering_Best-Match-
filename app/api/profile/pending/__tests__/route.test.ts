@@ -54,12 +54,10 @@ describe("POST /api/profile/pending", () => {
     const mockListUsers = vi
       .fn()
       .mockResolvedValue({ data: { users: [] }, error: null });
-    const mockCreateUser = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: "new-user-id" } },
-        error: null,
-      });
+    const mockCreateUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "new-user-id" } },
+      error: null,
+    });
 
     const mockSupabase = {
       auth: {
@@ -68,7 +66,7 @@ describe("POST /api/profile/pending", () => {
           createUser: mockCreateUser,
         },
       },
-      from: vi.fn().mockReturnValue({ insert: mockInsert }),
+      from: vi.fn().mockReturnValue({ upsert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 
@@ -90,7 +88,8 @@ describe("POST /api/profile/pending", () => {
       expect.objectContaining({
         experience_level: "senior",
         user_id: "new-user-id",
-      })
+      }),
+      { onConflict: "user_id" }
     );
   });
 
@@ -139,12 +138,10 @@ describe("POST /api/profile/pending", () => {
     const mockListUsers = vi
       .fn()
       .mockResolvedValue({ data: { users: [] }, error: null });
-    const mockCreateUser = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: "new-user-id" } },
-        error: null,
-      });
+    const mockCreateUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "new-user-id" } },
+      error: null,
+    });
 
     const mockSupabase = {
       auth: {
@@ -153,7 +150,7 @@ describe("POST /api/profile/pending", () => {
           createUser: mockCreateUser,
         },
       },
-      from: vi.fn().mockReturnValue({ insert: mockInsert }),
+      from: vi.fn().mockReturnValue({ upsert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 

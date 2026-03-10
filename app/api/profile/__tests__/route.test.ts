@@ -81,7 +81,7 @@ describe("Profile APIs", () => {
         data: { user: { id: "new-user-123" } },
         error: null,
       });
-      mockInsert.mockResolvedValue({ error: null });
+      mockUpsert.mockResolvedValue({ error: null });
 
       const req = new Request("http://localhost/api/profile/pending", {
         method: "POST",
@@ -99,12 +99,15 @@ describe("Profile APIs", () => {
       expect(data.success).toBe(true);
       expect(data.userId).toBe("new-user-123");
 
-      expect(mockInsert).toHaveBeenCalledWith({
-        user_id: "new-user-123",
-        target_role: "Developer",
-        skills: ["React", "Typescript"],
-        experience_level: "mid",
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        {
+          user_id: "new-user-123",
+          target_role: "Developer",
+          skills: ["React", "Typescript"],
+          experience_level: "mid",
+        },
+        { onConflict: "user_id" }
+      );
     });
 
     it("should return 500 if the profile creation fails", async () => {
@@ -113,7 +116,7 @@ describe("Profile APIs", () => {
         data: { user: { id: "new-user-123" } },
         error: null,
       });
-      mockInsert.mockResolvedValue({
+      mockUpsert.mockResolvedValue({
         error: { message: "Database connection failed" },
       });
 

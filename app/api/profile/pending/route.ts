@@ -80,24 +80,30 @@ export async function POST(req: Request) {
     }
 
     // 3. Insert into profiles table directly
-    const { error: profileError } = await supabaseAdmin
-      .from("profiles")
-      .insert({
+    // Using upsert with onConflict: 'user_id' is safer than insert
+    const { error: profileError } = await supabaseAdmin.from("profiles").upsert(
+      {
         user_id: userId,
         target_role: parsedData.targetRole,
         skills: parsedData.skills,
         experience_level: experienceLevel,
-      });
+      },
+      { onConflict: "user_id" }
+    );
 
     if (profileError) {
-      console.error("Supabase profile insert error:", profileError);
+      console.error("Supabase profile sync error:", {
+        message: profileError.message,
+        code: profileError.code,
+        details: profileError.details,
+        hint: profileError.hint,
+      });
       // We created the user but failed to create the profile.
-      // We'll let them sign in and fix it, but ideally we'd cleanup.
-      // For now, return error so the frontend knows something went wrong.
       return NextResponse.json(
         {
           error: "Account created but profile sync failed",
           details: profileError.message,
+          code: profileError.code,
         },
         { status: 500 }
       );
