@@ -37,6 +37,17 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }));
 
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: vi.fn(() => ({
+    from: vi.fn().mockReturnValue({
+      insert: mockInsert,
+      update: mockUpdate,
+      select: mockSelect,
+      upsert: mockUpsert,
+    }),
+  })),
+}));
+
 // Mock fetchJobs
 vi.mock("@/lib/jobFetcher", () => ({
   fetchJobs: vi.fn().mockResolvedValue([
