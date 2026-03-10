@@ -1,11 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../route";
 import { createClient } from "@supabase/supabase-js";
-import { z } from "zod";
 
 // Mock Supabase
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(),
+}));
+
+// Mock matching dependencies
+vi.mock("@/lib/aiMatcher", () => ({
+  runMatchBatch: vi.fn().mockResolvedValue({ matches: [], filtered_count: 0 }),
+}));
+
+vi.mock("@/lib/jobFetcher", () => ({
+  fetchJobs: vi.fn().mockResolvedValue([]),
 }));
 
 describe("POST /api/profile/pending", () => {
@@ -46,7 +54,7 @@ describe("POST /api/profile/pending", () => {
     expect(json.error).toBe("Validation failed");
   });
 
-  it("maps experience level correctly for senior", async () => {
+  it("maps experience level correctly for senior and returns loginUrl", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
 
@@ -54,21 +62,24 @@ describe("POST /api/profile/pending", () => {
     const mockListUsers = vi
       .fn()
       .mockResolvedValue({ data: { users: [] }, error: null });
-    const mockCreateUser = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: "new-user-id" } },
-        error: null,
-      });
+    const mockCreateUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "new-user-id" } },
+      error: null,
+    });
+    const mockGenerateLink = vi.fn().mockResolvedValue({
+      data: { properties: { action_link: "http://login.url" } },
+      error: null,
+    });
 
     const mockSupabase = {
       auth: {
         admin: {
           listUsers: mockListUsers,
           createUser: mockCreateUser,
+          generateLink: mockGenerateLink,
         },
       },
-      from: vi.fn().mockReturnValue({ insert: mockInsert }),
+      from: vi.fn().mockReturnValue({ upsert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 
@@ -79,17 +90,20 @@ describe("POST /api/profile/pending", () => {
       yearsOfExperience: 10,
     };
 
-    const req = new Request("http://localhost/api/profile/pending", {
+    const req = new Request("https://test-origin.com/api/profile/pending", {
       method: "POST",
       body: JSON.stringify(data),
     });
 
     const response = await POST(req);
     expect(response.status).toBe(200);
-    expect(mockInsert).toHaveBeenCalledWith(
+    const json = await response.json();
+    expect(json.loginUrl).toBe("http://login.url");
+    expect(mockGenerateLink).toHaveBeenCalledWith(
       expect.objectContaining({
-        experience_level: "senior",
-        user_id: "new-user-id",
+        options: {
+          redirectTo: "https://test-origin.com/auth/callback?next=/dashboard",
+        },
       })
     );
   });
@@ -139,12 +153,10 @@ describe("POST /api/profile/pending", () => {
     const mockListUsers = vi
       .fn()
       .mockResolvedValue({ data: { users: [] }, error: null });
-    const mockCreateUser = vi
-      .fn()
-      .mockResolvedValue({
-        data: { user: { id: "new-user-id" } },
-        error: null,
-      });
+    const mockCreateUser = vi.fn().mockResolvedValue({
+      data: { user: { id: "new-user-id" } },
+      error: null,
+    });
 
     const mockSupabase = {
       auth: {
@@ -153,7 +165,7 @@ describe("POST /api/profile/pending", () => {
           createUser: mockCreateUser,
         },
       },
-      from: vi.fn().mockReturnValue({ insert: mockInsert }),
+      from: vi.fn().mockReturnValue({ upsert: mockInsert }),
     };
     (createClient as any).mockReturnValue(mockSupabase);
 

@@ -14,8 +14,18 @@ const mocks = vi.hoisted(() => {
     mockGetUser: vi.fn(),
     mockListUsers: vi.fn(),
     mockCreateUser: vi.fn(),
+    mockGenerateLink: vi.fn(),
   };
 });
+
+// Mock matching dependencies
+vi.mock("@/lib/aiMatcher", () => ({
+  runMatchBatch: vi.fn().mockResolvedValue({ matches: [], filtered_count: 0 }),
+}));
+
+vi.mock("@/lib/jobFetcher", () => ({
+  fetchJobs: vi.fn().mockResolvedValue([]),
+}));
 
 // Re-export for ease of use in tests
 export const {
@@ -28,6 +38,7 @@ export const {
   mockGetUser,
   mockListUsers,
   mockCreateUser,
+  mockGenerateLink,
 } = mocks;
 
 // Mock both local and @supabase/supabase-js clients identical for test scope
@@ -38,6 +49,7 @@ vi.mock("@/lib/supabase/server", () => ({
       admin: {
         listUsers: mocks.mockListUsers,
         createUser: mocks.mockCreateUser,
+        generateLink: mocks.mockGenerateLink,
       },
     },
     from: vi.fn(() => ({
@@ -56,6 +68,7 @@ vi.mock("@supabase/supabase-js", () => ({
       admin: {
         listUsers: mocks.mockListUsers,
         createUser: mocks.mockCreateUser,
+        generateLink: mocks.mockGenerateLink,
       },
     },
     from: vi.fn(() => ({
@@ -81,7 +94,11 @@ describe("Profile APIs", () => {
         data: { user: { id: "new-user-123" } },
         error: null,
       });
-      mockInsert.mockResolvedValue({ error: null });
+      mockUpsert.mockResolvedValue({ error: null });
+      mockGenerateLink.mockResolvedValue({
+        data: { properties: { action_link: "http://login.url" } },
+        error: null,
+      });
 
       const req = new Request("http://localhost/api/profile/pending", {
         method: "POST",
@@ -98,13 +115,17 @@ describe("Profile APIs", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.userId).toBe("new-user-123");
+      expect(data.loginUrl).toBe("http://login.url");
 
-      expect(mockInsert).toHaveBeenCalledWith({
-        user_id: "new-user-123",
-        target_role: "Developer",
-        skills: ["React", "Typescript"],
-        experience_level: "mid",
-      });
+      expect(mockUpsert).toHaveBeenCalledWith(
+        {
+          user_id: "new-user-123",
+          target_role: "Developer",
+          skills: ["React", "Typescript"],
+          experience_level: "mid",
+        },
+        { onConflict: "user_id" }
+      );
     });
 
     it("should return 500 if the profile creation fails", async () => {
@@ -113,7 +134,7 @@ describe("Profile APIs", () => {
         data: { user: { id: "new-user-123" } },
         error: null,
       });
-      mockInsert.mockResolvedValue({
+      mockUpsert.mockResolvedValue({
         error: { message: "Database connection failed" },
       });
 
@@ -259,9 +280,6 @@ describe("Profile APIs", () => {
         error: null,
       });
 
-      const req = new Request("http://localhost/api/profile", {
-        method: "GET",
-      });
       const res: any = await GET();
 
       expect(res.status).toBe(200);
@@ -282,9 +300,6 @@ describe("Profile APIs", () => {
         error: { code: "PGRST116", message: "No rows found" },
       });
 
-      const req = new Request("http://localhost/api/profile", {
-        method: "GET",
-      });
       const res: any = await GET();
 
       expect(res.status).toBe(200);
@@ -304,9 +319,6 @@ describe("Profile APIs", () => {
         error: { message: "Internal DB Error" },
       });
 
-      const req = new Request("http://localhost/api/profile", {
-        method: "GET",
-      });
       const res: any = await GET();
 
       expect(res.status).toBe(500);
@@ -316,9 +328,6 @@ describe("Profile APIs", () => {
       // Throwing directly from the mock to trigger the outer catch
       mockGetUser.mockRejectedValue(new Error("Unexpected system failure"));
 
-      const req = new Request("http://localhost/api/profile", {
-        method: "GET",
-      });
       const res: any = await GET();
 
       expect(res.status).toBe(500);

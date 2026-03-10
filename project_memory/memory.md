@@ -41,7 +41,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-10 | `8d6fef29` | Fix Magic Link Redirection Logic | Implemented `getURL()` utility in `lib/utils.ts` to reliably determine site domain. Updated sign-in, onboarding, and auth callback routes to use centralized URL utility. | ✅ Complete |
 | 2026-03-10 | `0f3a4b92` | Debug Magic Link Redirection (v2) | Refined `getURL()` to be environment-aware (Vercel support) and strictly normalized to remove trailing slashes, preventing Supabase redirect failures. Verified with 6 new unit tests and full suite (174 tests). | ✅ Complete |
 | 2026-03-10 | `742762f` | Dynamic Origin Redirection Fix (v3) | Abandoned static URL utility for critical auth flows in favor of dynamic origin detection via `request.url` (server) and `window.location.origin` (client). This natively supports custom domains and preview deployments without manual env configuration. | ✅ Complete |
-| 2026-03-10 | `af6ee35c` | Silent Registration Flow | Implemented server-side silent account creation and profile sync for new signups. Enabled direct Dashboard redirect bypassing magic link emails via `sb-mock-user` cookie enhancement. Updated unit tests. | ✅ Complete |
+| 2026-03-10 | `af6ee35c` | Real Silent Login & Initial Matching | Implemented real magic link redirects for silent signup flow. Established server-side profile sync and immediate job matching on registration. Verified with unit tests (>80% coverage). | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
