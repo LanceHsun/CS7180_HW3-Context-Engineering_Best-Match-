@@ -8,6 +8,8 @@ const envSchema = z.object({
   ADZUNA_APP_KEY: z.string().min(1, "Adzuna App Key is required"),
   SENDGRID_API_KEY: z.string().optional(),
   SENDGRID_FROM_EMAIL: z.email().optional(),
+  NEXT_PUBLIC_SITE_URL: z.string().optional(),
+  NEXT_PUBLIC_VERCEL_URL: z.string().optional(),
 });
 
 const validateEnv = () => {
@@ -20,6 +22,8 @@ const validateEnv = () => {
       ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
       SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
       SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
+      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+      NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
     });
     return env;
   } catch (error) {

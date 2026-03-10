@@ -39,6 +39,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-10 | `f92da615` | Editable Target Role (Issue #24) | Implemented manual editing of Target Role in Dashboard Profile; Added Zod validation, auto-save on blur, and English success feedback. Updated unit tests (>80% coverage). | ✅ Complete |
 | 2026-03-10 | `079e8c54` | Signout & Match Runs Bug Fixes | Fixed Next.js App Router client cache issue on signout by forcing hard navigation. Fixed missing `match_runs` logs for manual "Search Now" triggers by using the Admin Supabase client to bypass RLS. | ✅ Complete |
 | 2026-03-10 | `8d6fef29` | Fix Magic Link Redirection Logic | Implemented `getURL()` utility in `lib/utils.ts` to reliably determine site domain. Updated sign-in, onboarding, and auth callback routes to use centralized URL utility. | ✅ Complete |
+| 2026-03-10 | `0f3a4b92` | Debug Magic Link Redirection (v2) | Refined `getURL()` to be environment-aware (Vercel support) and strictly normalized to remove trailing slashes, preventing Supabase redirect failures. Verified with 6 new unit tests and full suite (174 tests). | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
