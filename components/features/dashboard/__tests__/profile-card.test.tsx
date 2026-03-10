@@ -42,6 +42,7 @@ describe("ProfileCard Component (Revised)", () => {
   const mockSupabase = {
     from: vi.fn().mockReturnThis(),
     select: vi.fn().mockReturnThis(),
+    update: vi.fn().mockReturnThis(),
     eq: vi.fn().mockReturnThis(),
     single: vi.fn(),
   };
@@ -184,6 +185,47 @@ describe("ProfileCard Component (Revised)", () => {
 
     await waitFor(() => {
       expect(screen.getByText("PDF only")).toBeDefined();
+    });
+  });
+
+  it("allows editing the target role and saves on blur", async () => {
+    (useUser as any).mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+    });
+
+    mockSupabase.single.mockResolvedValue({
+      data: mockProfile,
+      error: null,
+    });
+
+    mockSupabase.update.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
+
+    render(<ProfileCard />);
+
+    await waitFor(() => screen.getByText("Frontend Engineer"));
+
+    // 1. Click to edit
+    const targetRoleDisplay = screen.getByText("Frontend Engineer");
+    fireEvent.click(targetRoleDisplay);
+
+    // 2. Change value
+    const input = screen.getByDisplayValue("Frontend Engineer");
+    fireEvent.change(input, { target: { value: "Fullstack Developer" } });
+
+    // 3. Blur to save
+    fireEvent.blur(input);
+
+    // 4. Verify save call
+    await waitFor(() => {
+      expect(mockSupabase.from).toHaveBeenCalledWith("profiles");
+      expect(mockSupabase.update).toHaveBeenCalledWith({
+        target_role: "Fullstack Developer",
+      });
+      expect(screen.getByText("Updated")).toBeDefined();
+      expect(screen.getByText("Fullstack Developer")).toBeDefined();
     });
   });
 });
