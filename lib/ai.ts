@@ -62,6 +62,7 @@ export async function generateWithFallback(
             await new Promise((resolve) => setTimeout(resolve, delay));
           }
 
+          const startTime = Date.now();
           const model = ai.getGenerativeModel({
             model: modelName,
             generationConfig: { responseMimeType },
@@ -71,6 +72,10 @@ export async function generateWithFallback(
           const text = result.response.text();
 
           if (text) {
+            const duration = Date.now() - startTime;
+            console.log(
+              `✅ Key ${keyIndex + 1} | Model ${modelName} succeeded in ${duration}ms`
+            );
             return { text, modelName };
           }
           throw new Error("Empty response from model");
