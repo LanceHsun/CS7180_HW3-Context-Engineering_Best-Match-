@@ -14,7 +14,8 @@ export async function POST(request: NextRequest) {
   await supabase.auth.signOut();
 
   // Build redirect URL from the request origin
-  const redirectUrl = `${getURL()}/`;
+  const { origin } = new URL(request.url);
+  const redirectUrl = `${origin}/`;
 
   const response = NextResponse.redirect(redirectUrl, { status: 302 });
 
