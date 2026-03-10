@@ -4,7 +4,6 @@ import { PendingProfileSchema } from "@/lib/validations/resume";
 import { z } from "zod";
 import { runMatchBatch } from "@/lib/aiMatcher";
 import { fetchJobs } from "@/lib/jobFetcher";
-import { getURL } from "@/lib/utils";
 import { UserProfile } from "@/lib/validations/schemas";
 
 // Create a Supabase client with the SERVICE ROLE KEY
@@ -160,12 +159,15 @@ export async function POST(req: Request) {
     }
 
     // 5. Generate a real magic link for silent login
+    const requestUrl = new URL(req.url);
+    const origin = requestUrl.origin;
+
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({
         type: "magiclink",
         email: parsedData.email,
         options: {
-          redirectTo: `${getURL()}/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=/dashboard`,
         },
       });
 

@@ -90,7 +90,7 @@ describe("POST /api/profile/pending", () => {
       yearsOfExperience: 10,
     };
 
-    const req = new Request("http://localhost/api/profile/pending", {
+    const req = new Request("https://test-origin.com/api/profile/pending", {
       method: "POST",
       body: JSON.stringify(data),
     });
@@ -99,12 +99,12 @@ describe("POST /api/profile/pending", () => {
     expect(response.status).toBe(200);
     const json = await response.json();
     expect(json.loginUrl).toBe("http://login.url");
-    expect(mockInsert).toHaveBeenCalledWith(
+    expect(mockGenerateLink).toHaveBeenCalledWith(
       expect.objectContaining({
-        experience_level: "senior",
-        user_id: "new-user-id",
-      }),
-      { onConflict: "user_id" }
+        options: {
+          redirectTo: "https://test-origin.com/auth/callback?next=/dashboard",
+        },
+      })
     );
   });
 
