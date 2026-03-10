@@ -7,7 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Check } from "lucide-react";
+import { z } from "zod";
 import { cn } from "@/lib/utils";
 import { ResumeUpdateModal } from "./resume-update-modal";
 
@@ -25,6 +27,10 @@ export function ProfileCard() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditingTargetRole, setIsEditingTargetRole] = useState(false);
+  const [editedTargetRole, setEditedTargetRole] = useState("");
+  const [isSavingTargetRole, setIsSavingTargetRole] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const supabase = createClient();
 
   const fetchProfile = async () => {
@@ -56,8 +62,63 @@ export function ProfileCard() {
     fetchProfile();
   }, [user, isUserLoading]);
 
+  useEffect(() => {
+    if (profile?.target_role) {
+      setEditedTargetRole(profile.target_role);
+    }
+  }, [profile]);
+
+  useEffect(() => {
+    if (showSuccessMessage) {
+      const timer = setTimeout(() => setShowSuccessMessage(false), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessMessage]);
+
   const handleUpdateResumeClick = () => {
     setIsModalOpen(true);
+  };
+
+  const handleTargetRoleSave = async () => {
+    if (!profile || !user) return;
+    if (editedTargetRole === profile.target_role) {
+      setIsEditingTargetRole(false);
+      return;
+    }
+
+    setIsSavingTargetRole(true);
+    try {
+      // Validate with Zod
+      const schema = z.string().min(1, "Target role is required").max(100);
+      const result = schema.safeParse(editedTargetRole);
+
+      if (!result.success) {
+        setUploadError(result.error.issues[0].message);
+        setEditedTargetRole(profile.target_role);
+        setIsSavingTargetRole(false);
+        setIsEditingTargetRole(false);
+        return;
+      }
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({ target_role: editedTargetRole })
+        .eq("user_id", user.id);
+
+      if (error) {
+        console.error("Error updating target role:", error);
+        setUploadError("Failed to update target role");
+      } else {
+        setProfile({ ...profile, target_role: editedTargetRole });
+        setShowSuccessMessage(true);
+      }
+    } catch (err) {
+      console.error("Unexpected error updating target role:", err);
+      setUploadError("Unexpected error updating target role");
+    } finally {
+      setIsSavingTargetRole(false);
+      setIsEditingTargetRole(false);
+    }
   };
 
   const handleUpdateSuccess = async () => {
@@ -153,14 +214,53 @@ export function ProfileCard() {
 
       <div className="space-y-4">
         <div>
-          <div className="mb-1.5 font-sans text-[12px] font-medium text-slate-500">
-            Target Role
-          </div>
-          <div className="rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-[14px] text-slate-900">
-            {profile?.target_role || (
-              <span className="text-slate-400 italic">No target role set</span>
+          <div className="mb-1.5 flex items-center justify-between font-sans text-[12px] font-medium text-slate-500">
+            <span>Target Role</span>
+            {showSuccessMessage && (
+              <span className="animate-in fade-in slide-in-from-right-1 flex items-center gap-1 text-emerald-600">
+                <Check className="h-3 w-3" />
+                Updated
+              </span>
             )}
           </div>
+          {isEditingTargetRole ? (
+            <div className="relative">
+              <Input
+                autoFocus
+                value={editedTargetRole}
+                onChange={(e) => setEditedTargetRole(e.target.value)}
+                onBlur={handleTargetRoleSave}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleTargetRoleSave();
+                  if (e.key === "Escape") {
+                    setEditedTargetRole(profile?.target_role || "");
+                    setIsEditingTargetRole(false);
+                  }
+                }}
+                disabled={isSavingTargetRole}
+                className="h-10 border-sky-200 bg-white text-[14px] text-slate-900 focus-visible:ring-sky-500"
+              />
+              {isSavingTargetRole && (
+                <div className="absolute top-1/2 right-3 -translate-y-1/2">
+                  <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              onClick={() => setIsEditingTargetRole(true)}
+              className="group cursor-pointer rounded-lg border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-[14px] text-slate-900 transition-colors hover:border-sky-200 hover:bg-white"
+            >
+              {profile?.target_role || (
+                <span className="text-slate-400 italic">
+                  No target role set
+                </span>
+              )}
+              <span className="ml-2 text-[11px] text-slate-400 opacity-0 transition-opacity group-hover:opacity-100">
+                (Click to edit)
+              </span>
+            </div>
+          )}
         </div>
 
         <div>
