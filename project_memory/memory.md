@@ -36,6 +36,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-07 | `76993ad2` | Email Logging in Cron (Issue #19) | Integrated email delivery into cron job. Consolidated logging into `match_runs` table with unified idempotency. Verified with 8 unit tests (100% coverage). | ✅ Complete |
 | 2026-03-09 | `b7a6f998` | Remote Main Sync | Fetched and merged `origin/main` into current feature branch. Fast-forward merge successful. | ✅ Complete |
 | 2026-03-10 | `f92da615` | Editable Target Role (Issue #24) | Implemented manual editing of Target Role in Dashboard Profile; Added Zod validation, auto-save on blur, and English success feedback. Updated unit tests (>80% coverage). | ✅ Complete |
+| 2026-03-10 | `079e8c54` | Signout & Match Runs Bug Fixes | Fixed Next.js App Router client cache issue on signout by forcing hard navigation. Fixed missing `match_runs` logs for manual "Search Now" triggers by using the Admin Supabase client to bypass RLS. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
