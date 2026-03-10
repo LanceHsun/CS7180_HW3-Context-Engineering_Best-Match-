@@ -6,7 +6,6 @@ import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { ResumeParseResult } from "@/lib/validations/resume";
-import { getURL } from "@/lib/utils";
 
 interface ExtractionResultsProps {
   parsedData: ResumeParseResult | null;
@@ -21,7 +20,6 @@ export function ExtractionResults({
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const supabase = createClient();
   const skills = parsedData?.skills || [];
   const targetRole = parsedData?.targetRole || "Software Engineer";
 
@@ -48,16 +46,18 @@ export function ExtractionResults({
         throw new Error(data.error || "Failed to save profile");
       }
 
-      const { userId } = await res.json();
+      const { userId, loginUrl } = await res.json();
 
-      // 2. Set mock user cookie to bypass auth and grant immediate dashboard access
-      // format: email|userId
-      document.cookie = `sb-mock-user=${encodeURIComponent(
-        `${email}|${userId}`
-      )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-
-      // 3. Complete and redirect to dashboard
-      onComplete();
+      if (loginUrl) {
+        // 2. Perform silent login via generated magic link redirect
+        window.location.href = loginUrl;
+      } else {
+        // Fallback to legacy mock
+        document.cookie = `sb-mock-user=${encodeURIComponent(
+          `${email}|${userId}`
+        )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
+        onComplete();
+      }
     } catch (err: any) {
       console.error("Profile save error:", err);
       setError(err.message || "An error occurred. Please try again.");

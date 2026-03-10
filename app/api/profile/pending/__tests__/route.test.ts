@@ -1,11 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "../route";
 import { createClient } from "@supabase/supabase-js";
-import { z } from "zod";
 
 // Mock Supabase
 vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(),
+}));
+
+// Mock matching dependencies
+vi.mock("@/lib/aiMatcher", () => ({
+  runMatchBatch: vi.fn().mockResolvedValue({ matches: [], filtered_count: 0 }),
+}));
+
+vi.mock("@/lib/jobFetcher", () => ({
+  fetchJobs: vi.fn().mockResolvedValue([]),
 }));
 
 describe("POST /api/profile/pending", () => {
@@ -46,7 +54,7 @@ describe("POST /api/profile/pending", () => {
     expect(json.error).toBe("Validation failed");
   });
 
-  it("maps experience level correctly for senior", async () => {
+  it("maps experience level correctly for senior and returns loginUrl", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "service-key";
 
@@ -58,12 +66,17 @@ describe("POST /api/profile/pending", () => {
       data: { user: { id: "new-user-id" } },
       error: null,
     });
+    const mockGenerateLink = vi.fn().mockResolvedValue({
+      data: { properties: { action_link: "http://login.url" } },
+      error: null,
+    });
 
     const mockSupabase = {
       auth: {
         admin: {
           listUsers: mockListUsers,
           createUser: mockCreateUser,
+          generateLink: mockGenerateLink,
         },
       },
       from: vi.fn().mockReturnValue({ upsert: mockInsert }),
@@ -84,6 +97,8 @@ describe("POST /api/profile/pending", () => {
 
     const response = await POST(req);
     expect(response.status).toBe(200);
+    const json = await response.json();
+    expect(json.loginUrl).toBe("http://login.url");
     expect(mockInsert).toHaveBeenCalledWith(
       expect.objectContaining({
         experience_level: "senior",

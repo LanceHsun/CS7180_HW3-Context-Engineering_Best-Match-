@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { PendingProfileSchema } from "@/lib/validations/resume";
 import { z } from "zod";
+import { runMatchBatch } from "@/lib/aiMatcher";
+import { fetchJobs } from "@/lib/jobFetcher";
+import { getURL } from "@/lib/utils";
+import { UserProfile } from "@/lib/validations/schemas";
 
 // Create a Supabase client with the SERVICE ROLE KEY
 // This is required because the pending_profiles table has RLS enabled with only an INSERT policy.
@@ -109,9 +113,81 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Success - Return the userId so the frontend can set the mock cookie
+    // 4. Trigger Initial Matching
+    // We do this immediately so the user lands on a populated dashboard.
+    try {
+      // Map back to Zod schema expected casing
+      let uiExperienceLevel: "Entry" | "Mid" | "Senior" | "Executive" = "Entry";
+      if (experienceLevel === "senior") uiExperienceLevel = "Senior";
+      else if (experienceLevel === "mid") uiExperienceLevel = "Mid";
+
+      const userProfile: UserProfile = {
+        name: parsedData.email.split("@")[0],
+        email: parsedData.email,
+        skills: parsedData.skills,
+        experienceLevel: uiExperienceLevel,
+        targetRole: parsedData.targetRole,
+        targetLocations: [],
+        notificationFrequency: "Weekly",
+      };
+
+      const allJobs = await fetchJobs({
+        role: parsedData.targetRole,
+      });
+
+      const topJobs = allJobs.slice(0, 10);
+      const matchResults = await runMatchBatch(userProfile, topJobs);
+      const qualifyingMatches = matchResults.matches;
+
+      if (qualifyingMatches.length > 0) {
+        const matchesToInsert = qualifyingMatches.map((m) => ({
+          user_id: userId,
+          job_title: m.job.title,
+          company: m.job.company,
+          score: Math.round(m.score),
+          apply_url: m.job.apply_url,
+          description: m.job.description,
+          location: m.job.location,
+        }));
+
+        await supabaseAdmin.from("matches").upsert(matchesToInsert, {
+          onConflict: "user_id, apply_url",
+        });
+      }
+    } catch (matchErr) {
+      console.error("Initial matching error during signup:", matchErr);
+      // We don't fail the whole signup if matching fails, but we log it.
+    }
+
+    // 5. Generate a real magic link for silent login
+    const { data: linkData, error: linkError } =
+      await supabaseAdmin.auth.admin.generateLink({
+        type: "magiclink",
+        email: parsedData.email,
+        options: {
+          redirectTo: `${getURL()}/dashboard`,
+        },
+      });
+
+    if (linkError) {
+      console.error("Failed to generate silent login link:", linkError);
+      return NextResponse.json(
+        {
+          error: "Account created but login redirection failed",
+          details: linkError.message,
+        },
+        { status: 500 }
+      );
+    }
+
+    // 6. Success - Return the loginUrl for the frontend to redirect
     return NextResponse.json(
-      { success: true, message: "Account created and profile synced.", userId },
+      {
+        success: true,
+        message: "Account created and profile synced.",
+        userId,
+        loginUrl: linkData.properties.action_link,
+      },
       { status: 200 }
     );
   } catch (error) {
