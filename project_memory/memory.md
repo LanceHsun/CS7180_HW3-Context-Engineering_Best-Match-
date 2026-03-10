@@ -42,6 +42,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 | 2026-03-10 | `0f3a4b92` | Debug Magic Link Redirection (v2) | Refined `getURL()` to be environment-aware (Vercel support) and strictly normalized to remove trailing slashes, preventing Supabase redirect failures. Verified with 6 new unit tests and full suite (174 tests). | ✅ Complete |
 | 2026-03-10 | `742762f` | Dynamic Origin Redirection Fix (v3) | Abandoned static URL utility for critical auth flows in favor of dynamic origin detection via `request.url` (server) and `window.location.origin` (client). This natively supports custom domains and preview deployments without manual env configuration. | ✅ Complete |
 | 2026-03-10 | `af6ee35c` | Real Silent Login & Initial Matching | Implemented real magic link redirects for silent signup flow. Established server-side profile sync and immediate job matching on registration. Verified with unit tests (>80% coverage). | ✅ Complete |
+| 2026-03-10 | `bb8f8f1b` | Header-based Origin Redirection Fix (v4) | Improved redirection reliability by switching from `request.url` to header-based origin detection (`x-forwarded-proto`, `host`). This resolves protocol mismatch issues (http vs https) on Vercel. Verified with unit tests. | ✅ Complete |
 ## Architectural Decisions
 
 ### 1. Agent Skills Implementation
