@@ -90,18 +90,18 @@ export async function GET(request: NextRequest) {
       if (isLocalEnv) {
         // we can be sure that there is no proxy in between
         return NextResponse.redirect(
-          `${getURL()}${next.startsWith("/") ? next.slice(1) : next}`
+          `${getURL()}/${next.startsWith("/") ? next.slice(1) : next}`
         );
       } else if (forwardedHost) {
         return NextResponse.redirect(`https://${forwardedHost}${next}`);
       } else {
         return NextResponse.redirect(
-          `${getURL()}${next.startsWith("/") ? next.slice(1) : next}`
+          `${getURL()}/${next.startsWith("/") ? next.slice(1) : next}`
         );
       }
     }
   }
 
   // return the user to an error page with instructions
-  return NextResponse.redirect(`${getURL()}auth/auth-code-error`);
+  return NextResponse.redirect(`${getURL()}/auth/auth-code-error`);
 }
