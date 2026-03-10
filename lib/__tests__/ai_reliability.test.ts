@@ -1,148 +1,94 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const GEMINI_MODELS = [
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
-  "gemini-1.5-flash",
-];
+// Mock environment first
+vi.mock("@/lib/env", () => ({
+  env: {
+    GEMINI_API_KEY: "key1,key2",
+  },
+}));
 
-const mockAIInstances = [
-  { getGenerativeModel: vi.fn() },
-  { getGenerativeModel: vi.fn() },
-];
+// Mock GoogleGenerativeAI
+const mockModel1 = {
+  generateContent: vi.fn(),
+};
+const mockModel2 = {
+  generateContent: vi.fn(),
+};
 
-async function testGenerateWithFallback(prompt: string, settings: any = {}) {
-  const { maxRetries = 3 } = settings;
+vi.mock("@google/generative-ai", () => {
+  return {
+    GoogleGenerativeAI: class {
+      constructor(public apiKey: string) {}
+      getGenerativeModel = vi.fn().mockImplementation(() => {
+        if (this.apiKey === "key1") return mockModel1;
+        return mockModel2;
+      });
+    },
+  };
+});
 
-  let lastError: any = null;
-
-  for (let keyIndex = 0; keyIndex < mockAIInstances.length; keyIndex++) {
-    const ai = mockAIInstances[keyIndex];
-    for (const modelName of GEMINI_MODELS) {
-      let attempt = 0;
-      while (attempt <= maxRetries) {
-        try {
-          const model = ai.getGenerativeModel({ model: modelName });
-          const result = await model.generateContent(prompt);
-          return { text: result.response.text(), modelName };
-        } catch (error: any) {
-          lastError = error;
-          const errorMsg = error.message || "";
-          const isRetryable = error.status === 429 || error.status >= 500;
-          const isNotFound = error.status === 404;
-          const isDailyQuotaExhausted = errorMsg.includes("limit: 0");
-
-          if (isDailyQuotaExhausted) {
-            // Skip to next KEY
-            break;
-          }
-
-          if (isRetryable && attempt < maxRetries) {
-            attempt++;
-            continue;
-          }
-          // Move to next model
-          break;
-        }
-      }
-      // If daily quota hit for THIS key, stop trying models for this key
-      if (lastError?.message?.includes("limit: 0")) break;
-    }
-  }
-  throw lastError;
-}
+// Now import the real function
+import { generateWithFallback, GEMINI_MODELS } from "../ai";
 
 describe("generateWithFallback reliability with multi-key rotation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockModel1.generateContent.mockReset();
+    mockModel2.generateContent.mockReset();
   });
 
   it("successfully returns response from the first model on the first key", async () => {
-    const mockModel = {
-      generateContent: vi.fn().mockResolvedValue({
-        response: { text: () => "Success response" },
-      }),
-    };
-    mockAIInstances[0].getGenerativeModel.mockReturnValue(mockModel);
+    mockModel1.generateContent.mockResolvedValue({
+      response: { text: () => "Success response" },
+    });
 
-    const result = await testGenerateWithFallback("test prompt");
-
+    const result = await generateWithFallback("test prompt", { maxRetries: 0 });
     expect(result.text).toBe("Success response");
     expect(result.modelName).toBe(GEMINI_MODELS[0]);
-    expect(mockAIInstances[0].getGenerativeModel).toHaveBeenCalled();
-    expect(mockAIInstances[1].getGenerativeModel).not.toHaveBeenCalled();
   });
 
   it("rotates to Second Key when First Key has daily quota exhausted (limit: 0)", async () => {
-    const mockModel1 = {
-      generateContent: vi
-        .fn()
-        .mockRejectedValue({
-          status: 429,
-          message: "Quota exceeded... limit: 0",
-        }),
-    };
-    const mockModel2 = {
-      generateContent: vi.fn().mockResolvedValue({
-        response: { text: () => "Success from second key" },
-      }),
-    };
-
-    mockAIInstances[0].getGenerativeModel.mockReturnValue(mockModel1);
-    mockAIInstances[1].getGenerativeModel.mockReturnValue(mockModel2);
-
-    const result = await testGenerateWithFallback("test prompt");
-
-    expect(result.text).toBe("Success from second key");
-    expect(mockAIInstances[0].getGenerativeModel).toHaveBeenCalled();
-    expect(mockAIInstances[1].getGenerativeModel).toHaveBeenCalled();
-  });
-
-  it("rotates to Second Key when all models on First Key fail", async () => {
-    const mockModel1 = {
-      generateContent: vi.fn().mockRejectedValue({ status: 500 }),
-    };
-    const mockModel2 = {
-      generateContent: vi.fn().mockResolvedValue({
-        response: {
-          text: () =>
-            "Success from second key after all models failed on first",
-        },
-      }),
-    };
-
-    mockAIInstances[0].getGenerativeModel.mockReturnValue(mockModel1);
-    mockAIInstances[1].getGenerativeModel.mockReturnValue(mockModel2);
-
-    const result = await testGenerateWithFallback("test prompt", {
-      maxRetries: 0,
+    const err = new Error("Quota exceeded... limit: 0");
+    (err as any).status = 429;
+    mockModel1.generateContent.mockRejectedValue(err);
+    mockModel2.generateContent.mockResolvedValue({
+      response: { text: () => "Success from key 2" },
     });
 
-    expect(result.text).toBe(
-      "Success from second key after all models failed on first"
-    );
-    expect(mockAIInstances[0].getGenerativeModel).toHaveBeenCalledTimes(
-      GEMINI_MODELS.length
-    );
-    expect(mockAIInstances[1].getGenerativeModel).toHaveBeenCalled();
+    const result = await generateWithFallback("test prompt", { maxRetries: 0 });
+    expect(result.text).toBe("Success from key 2");
+  });
+
+  it("fail-fast: rotates to Second Key immediately on 429", async () => {
+    const err = new Error("Too Many Requests");
+    (err as any).status = 429;
+    mockModel1.generateContent.mockRejectedValue(err);
+    mockModel2.generateContent.mockResolvedValue({
+      response: { text: () => "Quick recovery" },
+    });
+
+    const result = await generateWithFallback("test prompt", { maxRetries: 0 });
+    expect(result.text).toBe("Quick recovery");
+    expect(mockModel1.generateContent).toHaveBeenCalledTimes(1);
+  });
+
+  it("throws when model returns invalid response (null)", async () => {
+    mockModel1.generateContent.mockResolvedValue(null);
+    mockModel2.generateContent.mockResolvedValue(null);
+
+    await expect(
+      generateWithFallback("test prompt", { maxRetries: 0 })
+    ).rejects.toThrow(/Invalid response/);
   });
 
   it("throws after all keys and models fail", async () => {
-    const mockModel = {
-      generateContent: vi.fn().mockRejectedValue({ status: 429 }),
-    };
-    mockAIInstances[0].getGenerativeModel.mockReturnValue(mockModel);
-    mockAIInstances[1].getGenerativeModel.mockReturnValue(mockModel);
+    const err = new Error("Server Error");
+    (err as any).status = 500;
+    mockModel1.generateContent.mockRejectedValue(err);
+    mockModel2.generateContent.mockRejectedValue(err);
 
     await expect(
-      testGenerateWithFallback("test prompt", { maxRetries: 0 })
-    ).rejects.toEqual({ status: 429 });
-
-    expect(mockAIInstances[0].getGenerativeModel).toHaveBeenCalledTimes(
-      GEMINI_MODELS.length
-    );
-    expect(mockAIInstances[1].getGenerativeModel).toHaveBeenCalledTimes(
-      GEMINI_MODELS.length
-    );
+      generateWithFallback("test prompt", { maxRetries: 0 })
+    ).rejects.toThrow();
   });
 });

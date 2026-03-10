@@ -45,7 +45,12 @@ vi.mock("@/lib/jobFetcher", () => ({
     { title: "Job 3", company: "C", apply_url: "url3" },
     { title: "Job 4", company: "D", apply_url: "url4" },
     { title: "Job 5", company: "E", apply_url: "url5" },
-    { title: "Job 6", company: "F", apply_url: "url6" }, // Should be sliced out
+    { title: "Job 6", company: "F", apply_url: "url6" },
+    { title: "Job 7", company: "G", apply_url: "url7" },
+    { title: "Job 8", company: "H", apply_url: "url8" },
+    { title: "Job 9", company: "I", apply_url: "url9" },
+    { title: "Job 10", company: "J", apply_url: "url10" },
+    { title: "Job 11", company: "K", apply_url: "url11" }, // Should be sliced out
   ]),
 }));
 
@@ -102,11 +107,11 @@ describe("POST /api/match/trigger", () => {
     const json = await res.json();
     expect(json.data.matches).toHaveLength(1);
 
-    // Verify it sliced the jobs to 5
+    // Verify it sliced the jobs to 10
     const { runMatchBatch } = await import("@/lib/aiMatcher");
     expect(runMatchBatch).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ length: 5 }) // Verify that only 5 jobs were passed to matcher
+      expect.objectContaining({ length: 10 }) // Verify that only 10 jobs were passed to matcher
     );
 
     // Verify it updated the DB

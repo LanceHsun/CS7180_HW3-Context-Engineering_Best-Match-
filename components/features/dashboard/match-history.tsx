@@ -27,43 +27,67 @@ export function MatchHistory() {
   const { user, isLoading: isUserLoading } = useUser();
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTriggering, setIsTriggering] = useState(false);
   const supabase = createClient();
 
-  useEffect(() => {
-    const fetchMatches = async () => {
-      if (!user) {
-        if (!isUserLoading) setIsLoading(false);
-        return;
-      }
+  const fetchMatches = async () => {
+    if (!user) {
+      if (!isUserLoading) setIsLoading(false);
+      return;
+    }
 
-      try {
-        const { data, error } = await supabase
-          .from("matches")
-          .select("id, job_title, company, score, apply_url, created_at")
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(5);
+    try {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("id, job_title, company, score, apply_url, created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(5);
 
-        if (error) {
-          console.error("Error fetching matches:", error);
-        } else if (data) {
-          // Strictly use Zod for schema validation across the entire stack
-          const validatedData = matchesSchema.safeParse(data);
-          if (validatedData.success) {
-            setMatches(validatedData.data);
-          } else {
-            console.error("Match data validation failed:", validatedData.error);
-          }
+      if (error) {
+        console.error("Error fetching matches:", error);
+      } else if (data) {
+        // Strictly use Zod for schema validation across the entire stack
+        const validatedData = matchesSchema.safeParse(data);
+        if (validatedData.success) {
+          setMatches(validatedData.data);
+        } else {
+          console.error("Match data validation failed:", validatedData.error);
         }
-      } catch (err) {
-        console.error("Unexpected error fetching matches:", err);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (err) {
+      console.error("Unexpected error fetching matches:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchMatches();
   }, [user, isUserLoading, supabase]);
+
+  const handleSearchNow = async () => {
+    if (isTriggering) return;
+    setIsTriggering(true);
+
+    try {
+      const response = await fetch("/api/match/trigger", {
+        method: "POST",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || "Failed to trigger search");
+      }
+
+      await fetchMatches();
+    } catch (err: any) {
+      console.error("Manual search error:", err);
+      alert(`Search failed: ${err.message}`);
+    } finally {
+      setIsTriggering(false);
+    }
+  };
 
   if (isLoading || isUserLoading) {
     return <MatchHistorySkeleton />;
@@ -74,12 +98,31 @@ export function MatchHistory() {
   return (
     <Card className="rounded-[16px] border border-slate-200 bg-white p-6 shadow-sm">
       <div className="mb-5 flex items-center justify-between">
-        <div className="text-muted-foreground font-mono text-[11px] font-bold tracking-[1.5px] uppercase">
-          MATCH HISTORY
+        <div className="flex flex-col gap-1">
+          <div className="text-muted-foreground font-mono text-[11px] font-bold tracking-[1.5px] uppercase">
+            MATCH HISTORY
+          </div>
+          <span className="text-[12px] font-medium text-slate-400">
+            Last 5 delivered jobs
+          </span>
         </div>
-        <span className="text-[12px] font-medium text-slate-400">
-          Last 5 delivered jobs
-        </span>
+        <button
+          onClick={handleSearchNow}
+          disabled={isTriggering}
+          className="flex h-9 items-center gap-2 rounded-lg bg-sky-500 px-4 text-[13px] font-semibold text-white transition-all hover:bg-sky-600 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isTriggering ? (
+            <>
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+              <span>Searching...</span>
+            </>
+          ) : (
+            <>
+              <span className="text-lg leading-none">✨</span>
+              <span>Search Now</span>
+            </>
+          )}
+        </button>
       </div>
 
       <div className="flex flex-col gap-1">

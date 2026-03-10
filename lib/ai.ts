@@ -69,6 +69,9 @@ export async function generateWithFallback(
           });
 
           const result = await model.generateContent(prompt);
+          if (!result || !result.response) {
+            throw new Error("Invalid response from AI model");
+          }
           const text = result.response.text();
 
           if (text) {
