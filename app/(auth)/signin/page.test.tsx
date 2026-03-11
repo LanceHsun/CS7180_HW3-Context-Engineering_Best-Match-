@@ -13,6 +13,21 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
+// Mock Next.js navigation
+const { mockSearchParamsGet } = vi.hoisted(() => ({
+  mockSearchParamsGet: vi.fn((_key: string): string | null => null),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    replace: vi.fn(),
+    push: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: mockSearchParamsGet,
+  }),
+}));
+
 // Mock framer-motion to avoid animation issues in tests
 vi.mock("framer-motion", () => ({
   motion: {
@@ -108,5 +123,19 @@ describe("SignInPage", () => {
     );
 
     expect(screen.getByLabelText("Email Address")).toBeDefined();
+  });
+
+  it("displays success message when signupSuccess is true", () => {
+    mockSearchParamsGet.mockImplementation((_key) => {
+      if (_key === "message") return "signup_success";
+      if (_key === "email") return "newuser@example.com";
+      return null;
+    });
+
+    render(<SignInPage />);
+    expect(screen.getByText("Account created successfully!")).toBeDefined();
+    expect(
+      (screen.getByLabelText("Email Address") as HTMLInputElement).value
+    ).toBe("newuser@example.com");
   });
 });

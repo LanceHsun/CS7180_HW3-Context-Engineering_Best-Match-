@@ -127,7 +127,6 @@ describe("Profile APIs", () => {
       const data = await res.json();
       expect(data.success).toBe(true);
       expect(data.userId).toBe("new-user-123");
-      expect(data.loginUrl).toBe("http://login.url");
 
       expect(mockUpsert).toHaveBeenCalledWith(
         {

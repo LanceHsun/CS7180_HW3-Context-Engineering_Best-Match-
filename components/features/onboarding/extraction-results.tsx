@@ -13,9 +13,10 @@ interface ExtractionResultsProps {
 
 export function ExtractionResults({
   parsedData,
-  onComplete,
+  onComplete: _onComplete,
 }: ExtractionResultsProps) {
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -45,18 +46,13 @@ export function ExtractionResults({
         throw new Error(data.error || "Failed to save profile");
       }
 
-      const { userId, loginUrl } = await res.json();
-
-      if (loginUrl) {
-        // 2. Perform silent login via generated magic link redirect
-        window.location.href = loginUrl;
-      } else {
-        // Fallback to legacy mock
-        document.cookie = `sb-mock-user=${encodeURIComponent(
-          `${email}|${userId}`
-        )}; path=/; max-age=${60 * 60 * 24 * 7}; SameSite=Lax`;
-        onComplete();
-      }
+      // 2. Show success state and redirect
+      setIsSuccess(true);
+      setTimeout(() => {
+        window.location.href = `/signin?message=signup_success&email=${encodeURIComponent(
+          email
+        )}`;
+      }, 3000);
     } catch (err: any) {
       console.error("Profile save error:", err);
       setError(err.message || "An error occurred. Please try again.");
@@ -69,8 +65,29 @@ export function ExtractionResults({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="mt-8 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm sm:p-8"
+      className="relative mt-8 overflow-hidden rounded-2xl border border-[#e2e8f0] bg-white p-6 shadow-sm sm:p-8"
     >
+      {/* Success Overlay */}
+      {isSuccess && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/95 p-6 text-center backdrop-blur-sm"
+        >
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
+            <Check className="h-8 w-8" />
+          </div>
+          <h3 className="text-xl font-bold text-[#0f172a]">Profile Created!</h3>
+          <p className="mt-2 text-sm text-[#475569]">
+            We&apos;ve started finding job matches for you.
+            <br />
+            Check your email to sign in and see them!
+          </p>
+          <p className="mt-4 text-[11px] font-medium tracking-wider text-[#94a3b8] uppercase">
+            Redirecting to login...
+          </p>
+        </motion.div>
+      )}
       <div className="mb-6">
         <h2 className="font-mono text-[11px] font-bold tracking-[1.5px] text-[#94a3b8] uppercase">
           AI Extraction Results

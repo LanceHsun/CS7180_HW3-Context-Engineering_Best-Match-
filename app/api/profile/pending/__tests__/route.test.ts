@@ -87,17 +87,11 @@ describe("POST /api/profile/pending", () => {
       data: { user: { id: "new-user-id" } },
       error: null,
     });
-    const mockGenerateLink = vi.fn().mockResolvedValue({
-      data: { properties: { action_link: "http://login.url" } },
-      error: null,
-    });
-
     const mockSupabase = {
       auth: {
         admin: {
           listUsers: mockListUsers,
           createUser: mockCreateUser,
-          generateLink: mockGenerateLink,
         },
       },
       from: vi.fn().mockReturnValue({ upsert: mockInsert }),
@@ -123,14 +117,9 @@ describe("POST /api/profile/pending", () => {
     const response = await POST(req);
     expect(response.status).toBe(200);
     const json = await response.json();
-    expect(json.loginUrl).toBe("http://login.url");
-    expect(mockGenerateLink).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: {
-          redirectTo: "https://test-origin.com/auth/callback?next=%2Fdashboard",
-        },
-      })
-    );
+    expect(json.success).toBe(true);
+    expect(json.message).toBe("Account created and profile synced.");
+    expect(json.userId).toBe("new-user-id");
   });
 
   it("returns 400 if user already exists", async () => {

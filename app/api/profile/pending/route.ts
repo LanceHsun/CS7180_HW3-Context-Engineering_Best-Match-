@@ -115,41 +115,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Generate a real magic link for silent login
-    const protocol = req.headers.get("x-forwarded-proto") || "http";
-    const host =
-      req.headers.get("x-forwarded-host") ||
-      req.headers.get("host") ||
-      "localhost:3000";
-    const origin = `${protocol}://${host}`;
-
-    const { data: linkData, error: linkError } =
-      await supabaseAdmin.auth.admin.generateLink({
-        type: "magiclink",
-        email: parsedData.email,
-        options: {
-          redirectTo: `${origin}/auth/callback?next=%2Fdashboard`,
-        },
-      });
-
-    if (linkError) {
-      console.error("Failed to generate silent login link:", linkError);
-      return NextResponse.json(
-        {
-          error: "Account created but login redirection failed",
-          details: linkError.message,
-        },
-        { status: 500 }
-      );
-    }
-
-    // 6. Success - Return the loginUrl for the frontend to redirect
+    // 4. Success - Return success message
     return NextResponse.json(
       {
         success: true,
         message: "Account created and profile synced.",
         userId,
-        loginUrl: linkData.properties.action_link,
       },
       { status: 200 }
     );

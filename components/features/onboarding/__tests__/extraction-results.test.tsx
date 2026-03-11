@@ -80,7 +80,12 @@ describe("ExtractionResults Component", () => {
     expect((submitButton as HTMLButtonElement).disabled).toBe(false);
   });
 
-  it("triggers onComplete after clicking the button and API success", async () => {
+  it("shows success message and redirects after clicking the button and API success", async () => {
+    // Mock window.location.href
+    const originalLocation = window.location;
+    delete (window as any).location;
+    window.location = { ...originalLocation, href: "" } as any;
+
     render(
       <ExtractionResults
         parsedData={mockParsedData}
@@ -98,53 +103,45 @@ describe("ExtractionResults Component", () => {
 
     expect(screen.getByText("Creating your profile...")).toBeDefined();
 
-    await waitFor(() => {
-      expect(mockOnComplete).toHaveBeenCalled();
-    });
-  });
-
-  it("triggers onComplete after clicking the button and API success", async () => {
-    render(
-      <ExtractionResults
-        parsedData={mockParsedData}
-        onComplete={mockOnComplete}
-      />
+    await waitFor(
+      () => {
+        expect(screen.getByText("Profile Created!")).toBeDefined();
+        expect(
+          screen.getByText(/We've started finding job matches for you/i)
+        ).toBeDefined();
+      },
+      { timeout: 5000 }
     );
 
-    const emailInput = screen.getByPlaceholderText("you@example.com");
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-
-    const submitButton = screen.getByRole("button", {
-      name: /Start Receiving Matches/i,
-    });
-    fireEvent.click(submitButton);
-
-    expect(screen.getByText("Creating your profile...")).toBeDefined();
-
-    await waitFor(() => {
-      expect(mockOnComplete).toHaveBeenCalled();
-    });
-  });
-
-  it("sets the sb-mock-user cookie and does NOT call signInWithOtp", async () => {
-    // Mock document.cookie
-    const cookieSpy = vi.spyOn(document, "cookie", "set");
-
-    render(
-      <ExtractionResults
-        parsedData={mockParsedData}
-        onComplete={mockOnComplete}
-      />
+    // Verify redirect happens after timeout
+    await waitFor(
+      () => {
+        expect(window.location.href).toContain(
+          "/signin?message=signup_success"
+        );
+      },
+      { timeout: 5000 }
     );
 
-    const emailInput = screen.getByPlaceholderText("you@example.com");
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
+    // @ts-expect-error - necessary to restore the original location object in JSDom
+    window.location = originalLocation;
+  });
 
-    // Mock API to return userId
+  it("handles API error correctly", async () => {
     global.fetch = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ success: true, userId: "test-user-id" }),
+      ok: false,
+      json: async () => ({ error: "API specifically failed" }),
     });
+
+    render(
+      <ExtractionResults
+        parsedData={mockParsedData}
+        onComplete={mockOnComplete}
+      />
+    );
+
+    const emailInput = screen.getByPlaceholderText("you@example.com");
+    fireEvent.change(emailInput, { target: { value: "error@example.com" } });
 
     const submitButton = screen.getByRole("button", {
       name: /Start Receiving Matches/i,
@@ -152,17 +149,7 @@ describe("ExtractionResults Component", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(mockOnComplete).toHaveBeenCalled();
+      expect(screen.getByText("API specifically failed")).toBeDefined();
     });
-
-    // Verify cookie was set correctly
-    expect(cookieSpy).toHaveBeenCalledWith(
-      expect.stringContaining("sb-mock-user=test%40example.com%7Ctest-user-id")
-    );
-
-    // Verify signInWithOtp was NOT called
-    expect(mocks.mockSignInWithOtp).not.toHaveBeenCalled();
-
-    cookieSpy.mockRestore();
   });
 });
