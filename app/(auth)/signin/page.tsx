@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { z } from "zod";
 import { getURL } from "@/lib/utils";
 import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 
 const emailSchema = z.email({ message: "Please enter a valid email address" });
 
-export default function SignInPage() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const signupSuccess = searchParams.get("message") === "signup_success";
   const initialEmail = searchParams.get("email") || "";
@@ -214,5 +214,19 @@ export default function SignInPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+          <Loader2 className="h-8 w-8 animate-spin text-[#0ea5e9]" />
+        </div>
+      }
+    >
+      <SignInContent />
+    </Suspense>
   );
 }
