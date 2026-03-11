@@ -165,8 +165,9 @@ export async function POST(req: Request) {
     }
 
     // 5. Generate a real magic link for silent login
-    const requestUrl = new URL(req.url);
-    const origin = requestUrl.origin;
+    const protocol = req.headers.get("x-forwarded-proto") || "http";
+    const host = req.headers.get("host") || "localhost:3000";
+    const origin = `${protocol}://${host}`;
 
     const { data: linkData, error: linkError } =
       await supabaseAdmin.auth.admin.generateLink({

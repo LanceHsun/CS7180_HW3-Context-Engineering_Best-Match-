@@ -44,6 +44,10 @@ describe("POST /api/profile/pending", () => {
 
     const req = new Request("http://localhost/api/profile/pending", {
       method: "POST",
+      headers: {
+        "x-forwarded-proto": "http",
+        host: "localhost",
+      },
       body: JSON.stringify({}),
     });
 
@@ -62,6 +66,10 @@ describe("POST /api/profile/pending", () => {
 
     const req = new Request("http://localhost/api/profile/pending", {
       method: "POST",
+      headers: {
+        "x-forwarded-proto": "http",
+        host: "localhost",
+      },
       body: JSON.stringify({ email: "invalid" }), // Missing required fields
     });
 
@@ -109,6 +117,10 @@ describe("POST /api/profile/pending", () => {
 
     const req = new Request("https://test-origin.com/api/profile/pending", {
       method: "POST",
+      headers: {
+        "x-forwarded-proto": "https",
+        host: "test-origin.com",
+      },
       body: JSON.stringify(data),
     });
 
