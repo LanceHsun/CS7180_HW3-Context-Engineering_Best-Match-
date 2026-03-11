@@ -1,5 +1,9 @@
 # BestMatch
 
+![Build Status](https://github.com/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/actions/workflows/ci.yml/badge.svg)
+![Codecov](https://img.shields.io/codecov/c/github/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-)
+![Security Scan](https://img.shields.io/github/actions/workflow/status/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/ci.yml?label=Security%20Scan)
+
 BestMatch is an AI-driven job matching dashboard that helps candidates find high-probability roles by automatically scanning job boards and tailoring recommendations based on their master resume.
 
 ## Getting Started
