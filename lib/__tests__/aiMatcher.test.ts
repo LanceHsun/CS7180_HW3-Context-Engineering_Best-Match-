@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { scoreJobMatch, runMatchBatch } from "@/lib/aiMatcher";
-import { ai, generateWithFallback } from "../ai";
+import { generateWithFallback } from "../ai";
 import { UserProfile } from "../validations/schemas";
 import { NormalizedJob } from "../validations/jobListing";
 

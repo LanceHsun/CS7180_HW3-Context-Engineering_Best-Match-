@@ -5,22 +5,28 @@ import { z } from "zod";
 import { runMatchBatch } from "@/lib/aiMatcher";
 import { fetchJobs } from "@/lib/jobFetcher";
 import { UserProfile } from "@/lib/validations/schemas";
+import { isEnvValid, env } from "@/lib/env";
 
-// Create a Supabase client with the SERVICE ROLE KEY
-// This is required because the pending_profiles table has RLS enabled with only an INSERT policy.
-// While the client *could* insert if we used the public anon key, using the service role key
-// in the API route ensures we never leak the ability to manipulate data beyond the validated schema.
 export async function POST(req: Request) {
   try {
-    const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const { valid, errors } = isEnvValid();
+    const supaUrl = env.NEXT_PUBLIC_SUPABASE_URL;
     const supaKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!supaUrl || !supaKey) {
+    if (!valid || !supaKey) {
       console.error(
-        "Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL environment variables."
+        "Environment validation failed:",
+        errors || "Missing SUPABASE_SERVICE_ROLE_KEY"
       );
       return NextResponse.json(
-        { error: "Server configuration error. Missing database keys." },
+        {
+          error: "Server configuration error",
+          details: errors || {
+            SUPABASE_SERVICE_ROLE_KEY: ["Missing server-side key"],
+          },
+          message:
+            "Please ensure all required environment variables are set in the Vercel dashboard.",
+        },
         { status: 500 }
       );
     }

@@ -16,17 +16,31 @@ vi.mock("@/lib/jobFetcher", () => ({
   fetchJobs: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("@/lib/env", () => ({
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: "http://localhost",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+  },
+  isEnvValid: vi.fn().mockReturnValue({ valid: true, errors: null }),
+}));
+
+import { isEnvValid } from "@/lib/env";
+
 describe("POST /api/profile/pending", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
     vi.clearAllMocks();
     process.env = { ...originalEnv };
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key"; // Ensure this is set for all tests
+    (isEnvValid as any).mockReturnValue({ valid: true, errors: null });
   });
 
   it("returns 500 if environment variables are missing", async () => {
-    delete process.env.NEXT_PUBLIC_SUPABASE_URL;
-    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    (isEnvValid as any).mockReturnValue({
+      valid: false,
+      errors: { GEMINI_API_KEY: ["Missing key"] },
+    });
 
     const req = new Request("http://localhost/api/profile/pending", {
       method: "POST",
@@ -36,7 +50,10 @@ describe("POST /api/profile/pending", () => {
     const response = await POST(req);
     expect(response.status).toBe(500);
     const json = await response.json();
-    expect(json.error).toContain("Missing database keys");
+    expect(json.error).toBe("Server configuration error");
+    expect(json.message).toContain(
+      "Please ensure all required environment variables are set"
+    );
   });
 
   it("returns 400 on validation failure", async () => {
