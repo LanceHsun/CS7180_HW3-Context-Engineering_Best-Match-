@@ -127,7 +127,7 @@ describe("POST /api/profile/pending", () => {
     expect(mockGenerateLink).toHaveBeenCalledWith(
       expect.objectContaining({
         options: {
-          redirectTo: "https://test-origin.com/auth/callback?next=/dashboard",
+          redirectTo: "https://test-origin.com/auth/callback?next=%2Fdashboard",
         },
       })
     );

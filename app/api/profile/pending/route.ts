@@ -125,7 +125,7 @@ export async function POST(req: Request) {
         type: "magiclink",
         email: parsedData.email,
         options: {
-          redirectTo: `${origin}/auth/callback?next=/dashboard`,
+          redirectTo: `${origin}/auth/callback?next=%2Fdashboard`,
         },
       });
 

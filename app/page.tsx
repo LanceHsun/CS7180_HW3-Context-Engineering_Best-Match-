@@ -7,11 +7,37 @@ import { ExtractionResults } from "@/components/features/onboarding/extraction-r
 import { ResumeParseResult } from "@/lib/validations/resume";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function Home() {
   const [isParsed, setIsParsed] = useState(false);
   const [parsedData, setParsedData] = useState<ResumeParseResult | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        router.replace("/dashboard");
+      }
+    };
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.replace("/dashboard");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8fafc] font-sans text-[#0f172a]">
