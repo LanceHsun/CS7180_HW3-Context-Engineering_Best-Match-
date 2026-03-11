@@ -4,6 +4,15 @@
 ![Codecov](https://img.shields.io/codecov/c/github/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-)
 ![Security Scan](https://img.shields.io/github/actions/workflow/status/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/ci.yml?label=Security%20Scan)
 
+## 📊 Evaluation Dashboard
+
+| Metric                | Status                                                                                                                                           | Tool             |
+| :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------- | :--------------- |
+| **Build & CI**        | ![CI Status](https://github.com/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/actions/workflows/ci.yml/badge.svg)                         | GitHub Actions   |
+| **Test Coverage**     | ![Codecov](https://img.shields.io/codecov/c/github/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-)                                         | Vitest & Codecov |
+| **Security Scanning** | ![Security Scan](https://img.shields.io/github/actions/workflow/status/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/ci.yml?label=CodeQL) | GitHub CodeQL    |
+| **Code Quality**      | ![Lint Status](https://img.shields.io/badge/eslint-passing-brightgreen)                                                                          | ESLint           |
+
 BestMatch is an AI-driven job matching dashboard that helps candidates find high-probability roles by automatically scanning job boards and tailoring recommendations based on their master resume.
 
 ## Getting Started
