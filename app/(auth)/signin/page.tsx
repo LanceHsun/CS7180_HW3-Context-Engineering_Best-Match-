@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { motion, AnimatePresence } from "framer-motion";
-import { Loader2, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { z } from "zod";
 import { getURL } from "@/lib/utils";
+import { CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "@/components/ui/button";
 
 const emailSchema = z.email({ message: "Please enter a valid email address" });
 
 export default function SignInPage() {
-  const [email, setEmail] = useState("");
+  const searchParams = useSearchParams();
+  const signupSuccess = searchParams.get("message") === "signup_success";
+  const initialEmail = searchParams.get("email") || "";
+
+  const [email, setEmail] = useState(initialEmail);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSent, setIsSent] = useState(false);
@@ -109,6 +114,20 @@ export default function SignInPage() {
                 exit={{ opacity: 0, x: 20 }}
                 transition={{ duration: 0.3 }}
               >
+                {signupSuccess && (
+                  <div className="mb-6 flex items-start gap-3 rounded-xl bg-green-50 p-4 text-green-800">
+                    <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+                    <div>
+                      <p className="text-sm font-bold tracking-tight">
+                        Account created successfully!
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed opacity-90">
+                        We&apos;ve started finding matches for you. Please sign
+                        in to access your dashboard.
+                      </p>
+                    </div>
+                  </div>
+                )}
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div>
                     <label
