@@ -18,6 +18,17 @@ const mocks = vi.hoisted(() => {
   };
 });
 
+// Mock environment validation
+vi.mock("@/lib/env", () => ({
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: "http://test-url.com",
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+  },
+  isEnvValid: vi.fn().mockReturnValue({ valid: true, errors: null }),
+}));
+
+import { isEnvValid } from "@/lib/env";
+
 // Mock matching dependencies
 vi.mock("@/lib/aiMatcher", () => ({
   runMatchBatch: vi.fn().mockResolvedValue({ matches: [], filtered_count: 0 }),
@@ -85,6 +96,7 @@ describe("Profile APIs", () => {
     vi.clearAllMocks();
     process.env.NEXT_PUBLIC_SUPABASE_URL = "http://test-url.com";
     process.env.SUPABASE_SERVICE_ROLE_KEY = "test-admin-key";
+    (isEnvValid as any).mockReturnValue({ valid: true, errors: null });
   });
 
   describe("POST /api/profile/pending - Unauthenticated Drop-Box", () => {

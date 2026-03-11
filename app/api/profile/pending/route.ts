@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { PendingProfileSchema } from "@/lib/validations/resume";
 import { z } from "zod";
-import { runMatchBatch } from "@/lib/aiMatcher";
-import { fetchJobs } from "@/lib/jobFetcher";
-import { UserProfile } from "@/lib/validations/schemas";
 import { isEnvValid, env } from "@/lib/env";
 
 export async function POST(req: Request) {
@@ -118,53 +115,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // 4. Trigger Initial Matching
-    // We do this immediately so the user lands on a populated dashboard.
-    try {
-      // Map back to Zod schema expected casing
-      let uiExperienceLevel: "Entry" | "Mid" | "Senior" | "Executive" = "Entry";
-      if (experienceLevel === "senior") uiExperienceLevel = "Senior";
-      else if (experienceLevel === "mid") uiExperienceLevel = "Mid";
-
-      const userProfile: UserProfile = {
-        name: parsedData.email.split("@")[0],
-        email: parsedData.email,
-        skills: parsedData.skills,
-        experienceLevel: uiExperienceLevel,
-        targetRole: parsedData.targetRole,
-        targetLocations: [],
-        notificationFrequency: "Weekly",
-      };
-
-      const allJobs = await fetchJobs({
-        role: parsedData.targetRole,
-      });
-
-      const topJobs = allJobs.slice(0, 10);
-      const matchResults = await runMatchBatch(userProfile, topJobs);
-      const qualifyingMatches = matchResults.matches;
-
-      if (qualifyingMatches.length > 0) {
-        const matchesToInsert = qualifyingMatches.map((m) => ({
-          user_id: userId,
-          job_title: m.job.title,
-          company: m.job.company,
-          score: Math.round(m.score),
-          apply_url: m.job.apply_url,
-          description: m.job.description,
-          location: m.job.location,
-        }));
-
-        await supabaseAdmin.from("matches").upsert(matchesToInsert, {
-          onConflict: "user_id, apply_url",
-        });
-      }
-    } catch (matchErr) {
-      console.error("Initial matching error during signup:", matchErr);
-      // We don't fail the whole signup if matching fails, but we log it.
-    }
-
-    // 5. Generate a real magic link for silent login
+    // 4. Generate a real magic link for silent login
     const protocol = req.headers.get("x-forwarded-proto") || "http";
     const host = req.headers.get("host") || "localhost:3000";
     const origin = `${protocol}://${host}`;

@@ -7,13 +7,9 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(),
 }));
 
-// Mock matching dependencies
-vi.mock("@/lib/aiMatcher", () => ({
-  runMatchBatch: vi.fn().mockResolvedValue({ matches: [], filtered_count: 0 }),
-}));
-
-vi.mock("@/lib/jobFetcher", () => ({
-  fetchJobs: vi.fn().mockResolvedValue([]),
+// Mock Supabase
+vi.mock("@supabase/supabase-js", () => ({
+  createClient: vi.fn(),
 }));
 
 vi.mock("@/lib/env", () => ({
