@@ -5,6 +5,7 @@ This file serves as the definitive journal for the BestMatch project. It tracks 
 ## Session History
 
 | 2026-03-11 | `d4fde1a5` | Profile Save Error & Timeout Fix (Issue #25) | Implemented resilient environment validation in `lib/env.ts`; Optimized `pending/route.ts` by removing blocking AI matching to prevent Vercel 504 timeouts; Verified with unit tests (>80% coverage). | ✅ Complete |
+| 2026-03-11 | `8f74decb` | Refine Magic Link Reliability (v6) | Updated `auth/callback/page.tsx` and `auth-code-error/page.tsx` with aggressive `window.location` redirection to rescue hash-based sessions. | ✅ Complete |
 | 2026-03-11 | `8f74decb` | Robust Magic Link Redirection (Client-side) | Replaced `auth/callback/route.ts` with a client-side `page.tsx`; Unified PKCE/Implicit flow handling to prevent "Link Expired" errors on pre-fetch or hash fallback. | ✅ Complete |
 | 2026-03-11 | `8f74decb` | Auth Error Page Redirection Fix | Added client-side session check to `auth-code-error/page.tsx` to handle Implicit Flow fallback and pre-fetched link errors. | ✅ Complete |
 | 2026-03-11 | `8f74decb` | Refine Magic Link Redirection (v5) | Updated `pending/route.ts` to use `x-forwarded-host` for robust custom domain detection on Vercel; Verified with unit tests. | ✅ Complete |

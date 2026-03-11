@@ -13,27 +13,32 @@ function CallbackHandler() {
   useEffect(() => {
     const supabase = createClient();
 
-    // Listen for auth state change - Supabase handles hash fragments automatically
+    // 1. Immediate check for an existing session (Supabase might have already processed the code/hash)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        window.location.href = next;
+      }
+    });
+
+    // 2. Listen for auth state change
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // Redirection logic
-        router.push(next);
+        window.location.href = next;
       } else if (event === "SIGNED_OUT") {
-        // If we landed here and ended up signed out, go to error
-        router.push("/auth/auth-code-error");
+        window.location.href = "/auth/auth-code-error";
       }
     });
 
-    // Fallback timeout: if no session after 5 seconds, go to error page
+    // 3. Fallback timeout: if no session after 3 seconds, assume fail
     const timeout = setTimeout(() => {
       supabase.auth.getSession().then(({ data: { session } }) => {
         if (!session) {
-          router.push("/auth/auth-code-error");
+          window.location.href = "/auth/auth-code-error";
         }
       });
-    }, 5000);
+    }, 3000);
 
     return () => {
       subscription.unsubscribe();

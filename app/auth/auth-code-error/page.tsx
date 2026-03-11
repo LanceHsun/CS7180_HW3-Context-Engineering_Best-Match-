@@ -12,12 +12,14 @@ export default function AuthCodeErrorPage() {
 
   useEffect(() => {
     const supabase = createClient();
+
+    // Check session immediately - if the URL has a hash token, Supabase will process it here
     const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
       if (session) {
-        router.replace("/dashboard");
+        window.location.href = "/dashboard";
       }
     };
 
@@ -27,12 +29,12 @@ export default function AuthCodeErrorPage() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        router.replace("/dashboard");
+        window.location.href = "/dashboard";
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [router]);
+  }, []);
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f8fafc] px-4 font-sans text-[#0f172a]">
       <div className="w-full max-w-md text-center">
