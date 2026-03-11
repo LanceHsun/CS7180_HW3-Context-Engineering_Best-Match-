@@ -35,7 +35,7 @@
 We utilized a robust, AI-friendly stack to ensure type safety, scalability, and rapid development.
 
 - **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Shadcn UI, Framer Motion.
-- **Backend**: Next.js API Routes (Node.js) with Zod for schema validation.
+- **Backend**: Next.js API Routes (Full-stack TypeScript framework) with Zod for schema validation.
 - **Database & Auth**: Supabase (PostgreSQL + Magic Link Auth).
 - **AI Engine**: Google Gemini 1.5 Pro for resume parsing and matching logic.
 - **CI/CD**: GitHub Actions for automated linting, testing, security scanning, and Vercel for deployment.
