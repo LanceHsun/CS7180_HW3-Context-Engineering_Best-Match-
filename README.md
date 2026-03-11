@@ -13,60 +13,151 @@
 | **Security Scanning** | ![Security Scan](https://img.shields.io/github/actions/workflow/status/LanceHsun/CS7180_HW3-Context-Engineering_Best-Match-/ci.yml?label=CodeQL) | GitHub CodeQL    |
 | **Code Quality**      | ![Lint Status](https://img.shields.io/badge/eslint-passing-brightgreen)                                                                          | ESLint           |
 
-BestMatch is an AI-driven job matching dashboard that helps candidates find high-probability roles by automatically scanning job boards and tailoring recommendations based on their master resume.
+---
 
-## Getting Started
+## 1. Project Overview & Value Proposition
+
+**BestMatch** is an AI-driven job matching dashboard designed to eliminate "search fatigue" for job seekers. Instead of manually scanning dozens of job boards and tailoring resumes for every application, users upload one **Master Resume**, and our system continuously scans and matches roles to their unique profile.
+
+### Core Features
+
+- **AI Resume Persona Extraction**: Automatically parses PDF resumes to extract skills, experience levels, and professional tags using Gemini 1.5 Pro.
+- **Intelligent Match Scoring**: Compares job descriptions against user profiles to calculate a match percentage, delivering only high-probability roles (>70% score).
+- **Automated Email Delivery**: Delivers a curated inbox of opportunities at user-defined intervals (Daily/Weekly) via SendGrid.
+- **Preference-Driven Filtering**: Users can define target locations and matching frequency to ensure relevance.
+
+**Online Demo**: [Production URL Placeholder](https://bestmatch.vercel.app)
+
+---
+
+## 2. Technical Stack & Architecture
+
+We utilized a robust, AI-friendly stack to ensure type safety, scalability, and rapid development.
+
+- **Frontend**: Next.js 15 (App Router), React 19, Tailwind CSS v4, Shadcn UI, Framer Motion.
+- **Backend**: Next.js API Routes (Node.js) with Zod for schema validation.
+- **Database & Auth**: Supabase (PostgreSQL + Magic Link Auth).
+- **AI Engine**: Google Gemini 1.5 Pro for resume parsing and matching logic.
+- **CI/CD**: GitHub Actions for automated linting, testing, security scanning, and Vercel for deployment.
+
+### System Architecture
+
+```mermaid
+graph TD
+    User((User)) -->|Upload PDF| NextJS[Next.js Frontend]
+    NextJS -->|API Request| API[Next.js API Routes]
+    API -->|Prompt| Gemini[Gemini 1.5 Pro AI]
+    Gemini -->|JSON Profile| API
+    API -->|Store Data| Supabase[(Supabase DB)]
+    Cron[Cron Job] -->|Trigger| Matcher[Matching Engine]
+    Matcher -->|Fetch Jobs| Adzuna[Adzuna API]
+    Matcher -->|Compare| Gemini
+    Matcher -->|Score > 70%| SendGrid[SendGrid Email]
+    SendGrid -->|Notify| User
+```
+
+---
+
+## 3. AI Mastery & Human-AI Collaboration
+
+This project was developed using an "AI-Centric" workflow, leveraging multiple AI agents to maximize productivity and code quality.
+
+- **Collaborative Architecture**: Used **Claude 3.5 Sonnet** (Web) for high-level architectural design, logic explanation, and complex problem-solving.
+- **IDE-Centric implementation**: Utilized **Antigravity/Cursor** for context-aware code generation, refactoring, and automated test writing.
+- **Prompt Engineering**: Employed structured, multi-shot prompting for Gemini 1.5 Pro to ensure consistent JSON extraction from diverse resume formats.
+
+> [!NOTE]
+> Detailed Prompt strategies and developer logs are documented in [AI_MASTERY.md](./docs/AI_MASTERY.md) (Work in Progress).
+
+---
+
+## 4. Automation & Quality Assurance (CI/CD)
+
+We adhere to a mandatory **>80% test coverage** policy to ensure the reliability of our critical matching logic and user flows.
+
+### Testing Strategy
+
+- **Unit & Integration**: Vitest for API routes and core matching logic.
+- **End-to-End (E2E)**: Playwright for critical user paths (Onboarding -> Dashboard).
+- **Coverage**: Tracked via Codecov integration.
+
+### Run Tests Locally
+
+```bash
+# Unit & Integration Tests
+npm run test:coverage
+
+# E2E Tests
+npm run test:e2e
+```
+
+### CI/CD Pipeline
+
+Our GitHub Actions workflow handles:
+
+1. **Lint & Format**: Prettier and ESLint check for style consistency.
+2. **Security Scan**: GitHub CodeQL scans for vulnerabilities.
+3. **Automated Testing**: Runs the full test suite and uploads coverage to Codecov.
+4. **Deploy**: Automatic deployment to Vercel on successful quality gate completion.
+
+---
+
+## 5. Agile Process & Sprint Records
+
+The development was executed in two intensive Sprints following Agile methodologies.
+
+### Sprint 1: Infrastructure & Core Onboarding
+
+- **Focus**: Project scaffolding, Auth integration, and AI Resume Parsing.
+- **Key Deliverables**: PDF extraction engine, Supabase schema, Magic Link sign-in, and Onboarding UI.
+- **Roles**: Person A (Frontend/UI), Person B (Backend/Infra).
+
+### Sprint 2: Dashboard & Matching Engine
+
+- **Focus**: User features, Job Matching algorithm, and Automated Notifications.
+- **Key Deliverables**: Dashboard Profile Management, Job fetching module, AI Scoring logic (Zod validated), and SendGrid integration.
+- **Roles**: Person A (Frontend/Interaction), Person B (Backend/Automation).
+
+> [!TIP]
+> **Sprint Documentation**:
+>
+> - [Sprint Planning & Retrospectives Placeholder](./docs/retrospectives.md)
+
+---
+
+## 6. Getting Started
+
+Follow these steps to set up the project locally.
 
 ### Prerequisites
 
-- Node.js 18+
-- npm
+- Node.js 20+
+- A Supabase account and project.
+- A Gemini AI API Key.
 
-### Installation
+### Environment Variables
 
-1. Clone the repository:
+Create a `.env.local` file based on `.env.example`:
 
-   ```bash
-   git clone <repository-url>
-   cd CS7180_HW3-Context-Engineering_Best-Match-
-   ```
-
-2. Install dependencies:
-
-   ```bash
-   npm install
-   ```
-
-3. Setup environment variables:
-   ```bash
-   cp .env.example .env.local
-   ```
-   Fill in the required keys in `.env.local`.
-
-### Development
-
-Run the development server:
-
-```bash
-npm run dev
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+GEMINI_API_KEY=your_gemini_api_key
+SENDGRID_API_KEY=your_sendgrid_key
+ADZUNA_APP_ID=your_adzuna_id
+ADZUNA_APP_KEY=your_adzuna_key
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation & Run
 
-### Code Quality
+1. **Install Dependencies**: `npm install`
+2. **Run Development Server**: `npm run dev`
+3. **Build Prod**: `npm run build`
 
-- **Linting**: `npm run lint`
-- **Formatting**: `npm run format`
-- **Pre-commit Hooks**: Husky automatically runs `lint-staged` on every commit to ensure code quality.
+---
 
-## Tech Stack
+## 7. Resource Appendix
 
-- **Frontend**: Next.js 15 (App Router), Tailwind CSS v4, Shadcn UI
-- **Backend**: Next.js API Routes (Node.js)
-- **Database/Auth**: Supabase
-- **AI**: Gemini 1.5 Pro
-- **Job Search API**: Adzuna
-
-## Deployment
-
-For instructions on how to deploy this project to Vercel, please refer to the [Deployment Guide](./DEPLOYMENT.md).
+- **API Documentation**: [Complete API Doc Placeholder](./docs/api_docs.md)
+- **Technical Blog Post**: [Quality Technical Blog Placeholder](./docs/blog.md)
+- **Video Demo**: [10-Minute Demo Video Placeholder](https://youtube.com/placeholder)
