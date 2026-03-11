@@ -122,12 +122,15 @@ describe("Auth Callback Sync", () => {
     expect(mockExchangeCode).toHaveBeenCalledWith("123");
 
     // Ensure we upserted to the main profile
-    expect(mockUpsert).toHaveBeenCalledWith({
-      user_id: "user-1",
-      target_role: "Designer",
-      skills: ["Figma"],
-      experience_level: "senior",
-    }, { onConflict: 'user_id' });
+    expect(mockUpsert).toHaveBeenCalledWith(
+      {
+        user_id: "user-1",
+        target_role: "Designer",
+        skills: ["Figma"],
+        experience_level: "senior",
+      },
+      { onConflict: "user_id" }
+    );
 
     // Ensure we deleted the pending record
     expect(mockAdminClient.from).toHaveBeenCalledWith("pending_profiles");

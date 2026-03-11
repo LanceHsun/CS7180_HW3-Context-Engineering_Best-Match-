@@ -10,32 +10,64 @@ const envSchema = z.object({
   SENDGRID_FROM_EMAIL: z.email().optional(),
   NEXT_PUBLIC_SITE_URL: z.string().optional(),
   NEXT_PUBLIC_VERCEL_URL: z.string().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z
+    .string()
+    .min(1, "Service role key is required")
+    .optional(),
 });
 
 const validateEnv = () => {
+  const envData = {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
+    ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
+    SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
+    SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+  };
+
   try {
-    const env = envSchema.parse({
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      GEMINI_API_KEY: process.env.GEMINI_API_KEY,
-      ADZUNA_APP_ID: process.env.ADZUNA_APP_ID,
-      ADZUNA_APP_KEY: process.env.ADZUNA_APP_KEY,
-      SENDGRID_API_KEY: process.env.SENDGRID_API_KEY,
-      SENDGRID_FROM_EMAIL: process.env.SENDGRID_FROM_EMAIL,
-      NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
-      NEXT_PUBLIC_VERCEL_URL: process.env.NEXT_PUBLIC_VERCEL_URL,
-    });
-    return env;
+    return envSchema.parse(envData);
   } catch (error) {
     if (error instanceof z.ZodError) {
+      const missingKeys = error.issues
+        .map((issue) => issue.path.join("."))
+        .join(", ");
       console.error(
-        "❌ Invalid environment variables:",
-        z.flattenError ? z.flattenError(error).fieldErrors : error.issues
+        `❌ Invalid or missing environment variables: ${missingKeys}`
       );
-      throw new Error("Environment variables validation failed");
+
+      // In production, we don't want to crash the entire app on import
+      // but we do want to log the error clearly.
+      // We return the raw data cast to the schema type to avoid breakages,
+      // but individual routes should check for validity.
+      return envData as unknown as z.infer<typeof envSchema>;
     }
     throw error;
   }
 };
 
 export const env = validateEnv();
+
+/**
+ * Checks if all required environment variables are present.
+ * Use this in API routes to return a clean JSON error instead of crashing.
+ */
+export const isEnvValid = () => {
+  try {
+    envSchema.parse(process.env);
+    return { valid: true, errors: null };
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { valid: false, errors: error.flatten().fieldErrors };
+    }
+    return {
+      valid: false,
+      errors: { unknown: ["An unknown error occurred during env validation"] },
+    };
+  }
+};
