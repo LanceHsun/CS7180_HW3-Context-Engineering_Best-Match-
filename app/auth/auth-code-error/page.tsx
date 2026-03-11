@@ -3,8 +3,36 @@
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 export default function AuthCodeErrorPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const checkSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        router.replace("/dashboard");
+      }
+    };
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        router.replace("/dashboard");
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [router]);
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#f8fafc] px-4 font-sans text-[#0f172a]">
       <div className="w-full max-w-md text-center">
