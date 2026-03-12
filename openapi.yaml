@@ -1,0 +1,723 @@
+openapi: 3.0.3
+info:
+  title: BestMatch API
+  description: |
+    AI-powered job matching platform that parses user resumes, fetches live job
+    postings, scores them with Google Gemini, and delivers personalized matches
+    via email digest.
+  version: 1.0.0
+  contact:
+    name: BestMatch Team
+    email: feng.yun5@northeastern.edu
+
+servers:
+  - url: https://bestmatch.vercel.app/api/v1
+    description: Production
+  - url: http://localhost:3000/api/v1
+    description: Local Development
+
+tags:
+  - name: System
+    description: Health checks and service status
+  - name: Resume
+    description: Resume upload and AI-powered parsing
+  - name: Profile
+    description: User profile and preferences management
+  - name: Jobs
+    description: Job listing search via Adzuna
+  - name: Matching
+    description: AI-powered job matching engine
+  - name: Cron
+    description: Internal scheduled automation
+
+# ──────────────────────────────────────────────
+# Security Schemes
+# ──────────────────────────────────────────────
+components:
+  securitySchemes:
+    supabaseSession:
+      type: apiKey
+      in: cookie
+      name: sb-access-token
+      description: Supabase session cookie set after magic link authentication.
+    cronSecret:
+      type: http
+      scheme: bearer
+      description: Cron secret token for scheduled automation endpoints.
+
+  # ──────────────────────────────────────────────
+  # Reusable Schemas
+  # ──────────────────────────────────────────────
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: "Invalid request body"
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    example: email
+                  issue:
+                    type: string
+                    example: must be a valid email address
+
+    HealthStatus:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            database:
+              type: string
+              example: ok
+            gemini:
+              type: string
+              example: ok
+            timestamp:
+              type: string
+              format: date-time
+              example: "2026-03-10T12:00:00.000Z"
+
+    ParsedResume:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            targetRole:
+              type: string
+              example: Software Engineer
+            skills:
+              type: array
+              items:
+                type: string
+              example: ["JavaScript", "TypeScript", "React", "Node.js"]
+            yearsOfExperience:
+              type: integer
+              example: 4
+
+    Profile:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            user_id:
+              type: string
+              format: uuid
+            target_role:
+              type: string
+              example: Software Engineer
+            skills:
+              type: array
+              items:
+                type: string
+              example: ["React", "Node.js"]
+            experience_level:
+              type: string
+              example: mid
+
+    ProfileInput:
+      type: object
+      required: [targetRole, skills, yearsOfExperience]
+      properties:
+        targetRole:
+          type: string
+          example: Frontend Developer
+        skills:
+          type: array
+          items:
+            type: string
+          example: ["TypeScript", "CSS"]
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          example: 3
+
+    PendingProfileInput:
+      type: object
+      required: [email, targetRole, skills, yearsOfExperience]
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        targetRole:
+          type: string
+          example: Backend Engineer
+        skills:
+          type: array
+          items:
+            type: string
+          example: ["Go", "PostgreSQL"]
+        yearsOfExperience:
+          type: integer
+          minimum: 0
+          example: 5
+
+    SuccessMessage:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Profile saved.
+
+    JobListing:
+      type: object
+      properties:
+        title:
+          type: string
+          example: Senior Frontend Engineer
+        company:
+          type: string
+          example: Tech Corp
+        description:
+          type: string
+          example: "We are looking for a senior frontend engineer..."
+        apply_url:
+          type: string
+          format: uri
+          example: https://example.com/apply/12345
+        location:
+          type: string
+          example: New York, NY
+
+    JobListResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            jobs:
+              type: array
+              items:
+                $ref: "#/components/schemas/JobListing"
+            count:
+              type: integer
+              example: 10
+            pagination:
+              $ref: "#/components/schemas/Pagination"
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 20
+        total:
+          type: integer
+          example: 48
+
+    ScoredMatch:
+      type: object
+      properties:
+        job:
+          $ref: "#/components/schemas/JobListing"
+        score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          example: 85
+        reasoning:
+          type: string
+          example: Strong overlap in Node.js and AWS skills.
+
+    MatchTriggerResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          properties:
+            matches:
+              type: array
+              items:
+                $ref: "#/components/schemas/ScoredMatch"
+            filtered_count:
+              type: integer
+              example: 8
+
+    BatchMatchInput:
+      type: object
+      required: [profileId, jobs]
+      properties:
+        profileId:
+          type: string
+          format: uuid
+        jobs:
+          type: array
+          items:
+            $ref: "#/components/schemas/JobListing"
+
+    CronResult:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [success, skipped, error]
+          example: success
+        matches:
+          type: integer
+          example: 3
+        email:
+          type: string
+          enum: [success, skipped, error]
+          example: success
+
+    CronResponse:
+      type: object
+      properties:
+        processed:
+          type: integer
+          example: 50
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/CronResult"
+
+# ──────────────────────────────────────────────
+# Paths
+# ──────────────────────────────────────────────
+paths:
+  # ── System ─────────────────────────────────
+  /health:
+    get:
+      tags: [System]
+      summary: Check service health
+      description: Verify connectivity to the database and third-party services (Gemini AI).
+      responses:
+        "200":
+          description: All services operational
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        "503":
+          description: One or more services unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: SERVICE_UNAVAILABLE
+                  message: "Database connection failed"
+
+  # ── Resume ─────────────────────────────────
+  /resume/parse:
+    post:
+      tags: [Resume]
+      summary: Parse a resume PDF
+      description: |
+        Extract target role, skills, and experience level from a candidate's
+        resume using Google Gemini AI. Used during onboarding before
+        authentication is required.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: A valid PDF file of the candidate's resume
+      responses:
+        "200":
+          description: Resume parsed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ParsedResume"
+        "400":
+          description: Invalid or malformed PDF
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Invalid file format"
+                  details:
+                    - field: file
+                      issue: "Must be a valid .pdf document"
+        "500":
+          description: Server error during parsing
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: INTERNAL_ERROR
+                  message: "PDF parsing failed unexpectedly"
+
+  # ── Profile ────────────────────────────────
+  /profile:
+    get:
+      tags: [Profile]
+      summary: Fetch current user profile
+      description: Retrieve the profile details for the currently authenticated user.
+      security:
+        - supabaseSession: []
+      responses:
+        "200":
+          description: Profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Profile"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UNAUTHORIZED
+                  message: "Authentication required"
+        "404":
+          description: Profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: "No profile found for this user"
+
+    post:
+      tags: [Profile]
+      summary: Create or update user profile
+      description: Upsert the currently authenticated user's profile with new data.
+      security:
+        - supabaseSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProfileInput"
+      responses:
+        "200":
+          description: Profile saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+              example:
+                success: true
+                message: "Profile saved."
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Invalid request body"
+                  details:
+                    - field: targetRole
+                      issue: "must not be empty"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UNAUTHORIZED
+                  message: "Authentication required"
+
+  /profile/pending:
+    post:
+      tags: [Profile]
+      summary: Save a pending profile (pre-auth)
+      description: |
+        Securely save a profile for a user before they have fully authenticated.
+        Used during the Magic Link sign-up flow to preserve parsed resume data
+        across devices. Synced to the main profile table upon auth callback.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PendingProfileInput"
+      responses:
+        "200":
+          description: Pending profile saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessMessage"
+              example:
+                success: true
+                message: "Profile saved securely."
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Invalid request body"
+                  details:
+                    - field: email
+                      issue: "must be a valid email address"
+
+  # ── Jobs ───────────────────────────────────
+  /jobs:
+    get:
+      tags: [Jobs]
+      summary: Search job listings
+      description: |
+        Fetch active job listings from Adzuna, filtered by role and optional
+        location. Returns paginated results.
+      parameters:
+        - name: role
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Job title or keyword to search for
+          example: Frontend Engineer
+        - name: location
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Geographic location filter
+          example: New York, NY
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: Page number for pagination
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 50
+          description: Number of results per page
+      responses:
+        "200":
+          description: Job listings retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobListResponse"
+        "400":
+          description: Missing required query parameter
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Missing required parameter"
+                  details:
+                    - field: role
+                      issue: "must be provided"
+        "502":
+          description: Adzuna API unavailable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UPSTREAM_ERROR
+                  message: "Job data provider is temporarily unavailable"
+
+  # ── Matching ───────────────────────────────
+  /match/trigger:
+    post:
+      tags: [Matching]
+      summary: Trigger manual job match
+      description: |
+        Triggers the end-to-end matching pipeline for the authenticated user:
+        fetches jobs from Adzuna, runs Gemini AI scoring against the user's
+        profile, persists matches scoring >= 70 to the database, logs the run
+        in match_runs, and sends an email digest via SendGrid.
+      security:
+        - supabaseSession: []
+      responses:
+        "200":
+          description: Matching completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchTriggerResponse"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UNAUTHORIZED
+                  message: "Authentication required"
+        "404":
+          description: User profile not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: NOT_FOUND
+                  message: "Complete your profile before matching"
+        "500":
+          description: Matching pipeline error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: INTERNAL_ERROR
+                  message: "AI matching service encountered an error"
+
+  /match/run:
+    post:
+      tags: [Matching]
+      summary: Run batch AI scoring
+      description: |
+        Runs Gemini AI scoring against a specific set of jobs for a given
+        profile. Matches with a confidence score >= 70 are saved to the
+        database. Intended for internal use by the cron and trigger endpoints.
+      security:
+        - supabaseSession: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BatchMatchInput"
+      responses:
+        "200":
+          description: Batch scoring completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchTriggerResponse"
+        "400":
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: "Invalid request body"
+                  details:
+                    - field: profileId
+                      issue: "must be a valid UUID"
+        "401":
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UNAUTHORIZED
+                  message: "Authentication required"
+
+  # ── Cron ───────────────────────────────────
+  /cron/match:
+    get:
+      tags: [Cron]
+      summary: Run scheduled cron match
+      description: |
+        Secure endpoint for the Vercel Cron scheduler. Iterates through all
+        users whose digest frequency (daily/weekly) indicates they are due
+        for a match run. For each user, fetches jobs, runs AI scoring, saves
+        matches, and dispatches email digests via SendGrid. Implements strict
+        idempotency guards to prevent duplicate runs and per-user error
+        isolation so one failure does not block others.
+      security:
+        - cronSecret: []
+      responses:
+        "200":
+          description: Cron job completed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CronResponse"
+        "401":
+          description: Missing or invalid cron secret
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: UNAUTHORIZED
+                  message: "Invalid cron authorization"
+        "500":
+          description: Cron execution error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error:
+                  code: INTERNAL_ERROR
+                  message: "Cron job failed unexpectedly"
