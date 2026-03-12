@@ -67,7 +67,7 @@ This project was developed using an "AI-Centric" workflow, leveraging multiple A
 - **Prompt Engineering**: Employed structured, multi-shot prompting for Gemini 1.5 Pro to ensure consistent JSON extraction from diverse resume formats.
 
 > [!NOTE]
-> Detailed Prompt strategies and developer logs are documented in the [CS7180 Project2 Deliverables SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/r/personal/zixin_l_northeastern_edu/_layouts/15/Doc.aspx?sourcedoc=%7B610E361A-10A0-4318-9832-F3BEB4000329%7D&file=Document%202.docx&action=editNew&mobileredirect=true) and [docs/AI_MASTERY.md](docs/AI_MASTERY.md).
+> Detailed Prompt strategies and developer logs are documented in the [CS7180 Project2 Deliverables SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/g/personal/zixin_l_northeastern_edu/IQAaNg5hoBAYQ5gy8760AAMpAVerDBPYinnPbBg0zxU5rIU) and [docs/AI_MASTERY.md](docs/AI_MASTERY.md).
 
 ---
 
@@ -121,7 +121,7 @@ The development was executed in two intensive Sprints following Agile methodolog
 > [!TIP]
 > **Sprint Documentation**:
 >
-> - [Sprint Planning & Retrospectives](https://northeastern-my.sharepoint.com/:w:/r/personal/zixin_l_northeastern_edu/_layouts/15/Doc.aspx?sourcedoc=%7B610E361A-10A0-4318-9832-F3BEB4000329%7D&file=Document%202.docx&action=editNew&mobileredirect=true) / [docs/SPRINT_RECORDS.md](docs/SPRINT_RECORDS.md)
+> - [Sprint Planning & Retrospectives](https://northeastern-my.sharepoint.com/:w:/g/personal/zixin_l_northeastern_edu/IQAaNg5hoBAYQ5gy8760AAMpAVerDBPYinnPbBg0zxU5rIU) / [docs/SPRINT_RECORDS.md](docs/SPRINT_RECORDS.md)
 
 ---
 
@@ -158,8 +158,8 @@ ADZUNA_APP_KEY=your_adzuna_key
 
 ## 7. Resource Appendix
 
-- **API Documentation**: [SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/r/personal/zixin_l_northeastern_edu/_layouts/15/Doc.aspx?sourcedoc=%7B610E361A-10A0-4318-9832-F3BEB4000329%7D&file=Document%202.docx&action=editNew&mobileredirect=true)
-- **Technical Blog Post**: [SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/r/personal/zixin_l_northeastern_edu/_layouts/15/Doc.aspx?sourcedoc=%7B610E361A-10A0-4318-9832-F3BEB4000329%7D&file=Document%202.docx&action=editNew&mobileredirect=true) | [TECHNICAL_BLOG.md](docs/TECHNICAL_BLOG.md)
+- **API Documentation**: [SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/g/personal/zixin_l_northeastern_edu/IQAaNg5hoBAYQ5gy8760AAMpAVerDBPYinnPbBg0zxU5rIU)
+- **Technical Blog Post**: [SharePoint Doc](https://northeastern-my.sharepoint.com/:w:/g/personal/zixin_l_northeastern_edu/IQAaNg5hoBAYQ5gy8760AAMpAVerDBPYinnPbBg0zxU5rIU) | [TECHNICAL_BLOG.md](docs/TECHNICAL_BLOG.md)
 - **AI Mastery & Collaborative Workflow**: [docs/AI_MASTERY.md](docs/AI_MASTERY.md)
 - **Sprint Records & Process**: [docs/SPRINT_RECORDS.md](docs/SPRINT_RECORDS.md)
 - **Video Demo**: [YouTube Demo](https://www.youtube.com/watch?v=kNPfi2f71IU)
