@@ -12,7 +12,8 @@
     "prepare": "husky",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:report": "node scripts/generate-eval-report.mjs"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

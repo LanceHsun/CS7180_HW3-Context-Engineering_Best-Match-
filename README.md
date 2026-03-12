@@ -89,7 +89,14 @@ npm run test:coverage
 
 # E2E Tests
 npm run test:e2e
+
+# Generate Evaluation Dashboard Report (Markdown/PDF)
+npm run test:report
 ```
+
+### Evaluation Dashboard
+
+The project includes a dedicated [EVALUATION_DASHBOARD.md](EVALUATION_DASHBOARD.md) that summarizes the latest test results, coverage, and security status. This document is designed for course submissions and can be easily converted to PDF.
 
 ### CI/CD Pipeline
 
